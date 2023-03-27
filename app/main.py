@@ -156,10 +156,10 @@ class SystemInfo:
         self.output_str += self.graphicinfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
         self.output_str += ",\n"
-        self.output_str += self.cpucoreinfo()
+        self.output_str += self.cpuInfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
         self.output_str += "\n"
-        self.output_str += self.cpuinfo()
+        self.output_str += self.cpucoreInfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
         self.output_str += "\n"
         self.output_str += self.hardinfo()
@@ -172,34 +172,67 @@ class SystemInfo:
         return str(self.output_str)
 
     def memoryinfo(self):
-        meminfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/memory/memory_info.sh']).decode('utf-8')
-        return meminfo
+        meminfo = subprocess.run(['bashscript/memory/memory_info.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeMemory = meminfo.returncode
+
+        if exitCodeMemory == 0:
+            return meminfo.stdout
+        else:
+            return "\"memory\":"+"\"!!!cannot get memory information\"!!!"
 
     def swapmemory(self):
-        swpinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/memory/swap_info.sh']).decode('utf-8')
-        return swpinfo
+        swpinfo = subprocess.run(['bashscript/memory/swap_info.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeswapinfo = swpinfo.returncode
+
+        if exitCodeswapinfo == 0:
+            return swpinfo.stdout
+        else:
+            return "\"swap\":" + "\"!!!cannot get swap information\"!!!"
 
     def graphicinfo(self):
-        grphinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/graphic/graphic_info.sh']).decode('utf-8')
-        return grphinfo
+        grphinfo = subprocess.run(['bashscript/graphic/graphic_info.sh'], capture_output=True, text=True, shell=True)
 
-    def cpucoreinfo(self):
-        cpuinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/cpu/cpu_info.sh']).decode('utf-8')
-        return cpuinfo
+        exitCodeGraphic = grphinfo.returncode
 
-    def cpuinfo(self):
-        cpuinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/cpu/usedCoreCpu.sh']).decode('utf-8')
-        return cpuinfo
+        if exitCodeGraphic == 0:
+            return grphinfo.stdout
+        else:
+            return "\"graphic\":" + "\"!!!cannot get graphic information\"!!!"
+
+    def cpuInfo(self):
+        cpuinfo = subprocess.run(
+            ['bashscript/cpu/cpu_info.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeCpu = cpuinfo.returncode
+
+        if exitCodeCpu == 0:
+            return cpuinfo.stdout
+        else:
+            return "\"CpuInfo\":" + "\"!!!cannot get Cpu information\"!!!"
+
+    def cpucoreInfo(self):
+        cpucoreinfo = subprocess.run(
+            ['bashscript/cpu/usedCoreCpu.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeCpuCore = cpucoreinfo.returncode
+
+        if exitCodeCpuCore == 0:
+            return cpucoreinfo.stdout
+        else:
+            return "\"CpuCoreInfo\":" + "\"!!!cannot get CpuCore information\"!!!"
 
     def hardinfo(self):
-        hardinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/harddisk/info_hard.sh']).decode('utf-8')
-        return hardinfo
+        hardinfo = subprocess.run(['bashscript/harddisk/info_hard.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeHard = hardinfo.returncode
+
+        if exitCodeHard == 0:
+            return hardinfo.stdout
+        else:
+            return "\"Hard_disk\":" + "\"!!!cannot get HardDisk information\"!!!"
+
 
 
 class ObjNetWork:
@@ -266,5 +299,5 @@ api.add_route('/', ObjNetWork())
 
 if __name__ == "__main__":
     from wsgiref import simple_server
-    httpd = simple_server.make_server('10.42.0.213', 5000, api)
+    httpd = simple_server.make_server('127.0.0.1', 5000, api)
     httpd.serve_forever()
