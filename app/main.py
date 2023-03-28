@@ -50,31 +50,68 @@ class NetWorkViwer:
             json_str += "\t\t\t  " + '"DefaultGetway": ' + '"' + self.getDefaultgetway(i).replace("\n",
                                                                                                   "") + '"' + ',' + "\n"
             json_str += "\t\t\t  " + '"Netmask": ' + '"' + self.getNetmask(i).replace("\n", "") + '"' + ',' + "\n"
-            json_str += "\t\t\t  " + '"Dns": ' + '"' + self.getDns(i).replace("\n", "") + '"' + "\n" + "\t\t\t  },\n"
+            json_str += "\t\t\t  " + '"Dns": ' + '"' + self.getDns().replace("\n", ",") + '"' + "\n" + "\t\t\t  },\n"
         json_str = json_str[:-2]
         json_str += "\n\t\t}"
         json_str += "\n}"
         return json_str
 
     def getIp(self, InterfaceName):
-        ipNet = subprocess.check_output(['bash', 'getIp.sh', InterfaceName]).decode('utf-8')
-        return ipNet
 
-    def getState(self, InterfaceName):
-        chkEnbl = subprocess.check_output(['bash', 'checkInterfaceEnable.sh', InterfaceName]).decode('utf-8')
-        return chkEnbl
+
+        ipNet = subprocess.run(['bashscript/net/infonet/getip.sh'+ " " +InterfaceName], capture_output=True, text=True, shell=True)
+
+        exitCodeipnet = ipNet.returncode
+
+        if exitCodeipnet == 0:
+            return ipNet.stdout
+        elif exitCodeipnet == 2:
+            return "Interface does not exist."
+        else:
+            return "{"+"\"error\":"+"\"!!!cannot get ip information!!!\""+"}"
+
+    # def getState(self, InterfaceName):
+    #     chkEnbl = subprocess.check_output(['bash', 'checkInterfaceEnable.sh', InterfaceName]).decode('utf-8')
+    #     return chkEnbl
 
     def getDefaultgetway(self, InterfaceName):
-        defaltGetway = subprocess.check_output(['bash', 'getDefaultgetway.sh', InterfaceName]).decode('utf-8')
-        return defaltGetway
+        defaltGetway = subprocess.run(['bashscript/net/infonet/getDefaultgetway.sh'+ " " +InterfaceName], capture_output=True, text=True, shell=True)
+
+        exitCodedefgetway = defaltGetway.returncode
+
+        if exitCodedefgetway == 0:
+            return defaltGetway.stdout
+        elif exitCodedefgetway == 2:
+            return "Interface does not exist."
+        else:
+            return "{" + "\"error\":" + "\"!!!cannot get Defaultgetway information!!!\"" + "}"
+
 
     def getNetmask(self, InterfaceName):
-        Netmask = subprocess.check_output(['bash', 'getNetmask.sh', InterfaceName]).decode('utf-8')
-        return Netmask
+        netMask = subprocess.run(['bashscript/net/infonet/getNetmask.sh'+ " " +InterfaceName], capture_output=True, text=True, shell=True)
 
-    def getDns(self, InterfaceName):
-        Dns = subprocess.check_output(['bash', 'getDNS.sh', InterfaceName]).decode('utf-8')
-        return Dns
+        exitCodeNetmask = netMask.returncode
+
+        if exitCodeNetmask == 0:
+
+            return netMask.stdout
+
+        elif exitCodeNetmask == 2:
+            return "/home/os1/Desktop/1402/scout-server/app/bashscript/net/infonet/getDNS.sh"
+        else:
+            return "{" + "\"error\":" + "\"!!!cannot get NetMask information!!!\"" + "}"
+
+    def getDns(self):
+        Dns = subprocess.run(['bashscript/net/infonet/getDNS.sh'], capture_output=True, text=True, shell=True)
+
+        exitCodeDns = Dns.returncode
+
+        if exitCodeDns == 0:
+            return Dns.stdout
+        elif exitCodeDns == 2:
+            return "Interface does not exist."
+        else:
+            return "Dns does not exist."
 
 
 class NetWorkManager:
@@ -87,8 +124,7 @@ class NetWorkManager:
         subprocess.run([script_path + " " + nameinterface + " " + lip + "" + lnetmask + "" + gatway + "" + ldns],
                        shell=True)
 
-
-        if True:
+        if False:
             return "config changed"
         else:
             return "config dont changed"
@@ -145,7 +181,7 @@ class NetWorkManager:
 
 class SystemInfo:
 
-    def my_systemindo(self):
+    def my_systeminfo(self):
         self.output_str = "{\n"
         self.output_str += self.memoryinfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
@@ -246,28 +282,30 @@ class ObjNetWork:
         resp.status = falcon.HTTP_200
 
         if req.params == {}:
-             resp.body = str(self.sys.my_systemindo())
+             resp.body = str(self.sys.my_systeminfo())
         elif str(req.params['conf']).lower() == "ip":
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getIp(req.params['namenet'])
         elif str(req.params['conf']).lower() == "state":
             if 'namenet' in req.params:
-                resp.body = self.netviewer.getState(req.params['namenet'])
+                print ("")
+                #resp.body = self.netviewer.getState(req.params['namenet'])
         elif str(req.params['conf']).lower() == "defaultgetway":
             if 'namenet' in req.params:
-                resp.body = self.netviewer.getDefaultgetway(req.params['namenet']).replace("\n", ",")
+                resp.body = self.netviewer.getDefaultgetway(req.params['namenet']).replace("\n", "")
         elif str(req.params['conf']).lower() == "netmask":
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getNetmask(req.params['namenet'])
         elif str(req.params['conf']).lower() == "dns":
-            if 'namenet' in req.params:
-                resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
+            #if 'namenet' in req.params:
+                #resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
+            resp.body = self.netviewer.getDns().replace("\n", ",")
 
 
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
-        if str(req.params['conf']).lower() == "changeconfig":
+        if str(req.params['conf']).lower() == "changeconfigInterface":
             if 'namenet' in req.params:
                 if 'listip' in req.params:
                     if 'listnetmask' in req.params:
