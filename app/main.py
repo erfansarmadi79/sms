@@ -121,8 +121,12 @@ class NetWorkManager:
 
     def change_config(self, nameinterface, lip, lnetmask, gatway, ldns):
         script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeIP.sh"
-        subprocess.run([script_path + " " + nameinterface + " " + lip + "" + lnetmask + "" + gatway + "" + ldns],
-                       shell=True)
+        changeConfig = subprocess.run([script_path + " " + nameinterface + " " + lip + "" + lnetmask + "" + gatway + "" + ldns], capture_output=True, text=True, shell=True)
+
+        exitCodechangeConfig = changeConfig.returncode
+
+
+
 
         if False:
             return "config changed"
@@ -305,7 +309,7 @@ class ObjNetWork:
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
-        if str(req.params['conf']).lower() == "changeconfigInterface":
+        if str(req.params['conf']).lower() == "changeconfig":
             if 'namenet' in req.params:
                 if 'listip' in req.params:
                     if 'listnetmask' in req.params:
