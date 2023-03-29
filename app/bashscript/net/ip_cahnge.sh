@@ -3,22 +3,7 @@
 set -e
 
 
-
-
-
-
 ####   ./ipt.sh eth0 "192.168.1.221 192.168.1.210 192.168.1.213" "255.0.0.0 255.255.0.0 255.255.255.0" 10.42.0.240 "8.8.8.8 4.2.2.3"
-
-
-
-
-
-
-
-
-
-
-
 
 
 # Input validation function for IP addresses
@@ -55,12 +40,12 @@ if [[ "$input" =~ ^\/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
   if [[ ! "$cidr" =~ ^[0-9]+$ ]]; then
     echo "Invalid CIDR notation: $input"
     stat=$?
-    exit 1
+    exit 4
   fi
   if (( cidr < 0 || cidr > 32 )); then
     echo "CIDR notation out of range: $input"
     stat=$?
-    exit 1
+    exit 4
   fi
   
 elif [[ "$input" =~ ^([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
@@ -69,13 +54,12 @@ elif [[ "$input" =~ ^([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
   if [[ ! "$cidr" =~ ^[0-9]+$ ]]; then
     echo "Invalid CIDR notation: $input"
     stat=$?
-    exit 1
+    exit 4
   fi
   if (( cidr < 0 || cidr > 32 )); then
     echo "CIDR notation out of range: $input"
     stat=$?
-    
-    exit 1
+    exit 4
   fi
 
 else
@@ -88,7 +72,7 @@ else
     stat=$?
     
     echo "Invalid netmask: $input"
-    exit 1
+    exit 4
   fi
   
   # Check that each octet is a valid number between 0 and 255
@@ -97,7 +81,7 @@ else
       echo "Invalid netmask: $input"
       stat=$?
      
-      exit 1
+      exit 4
     fi
   done
   
@@ -110,7 +94,7 @@ else
     echo "Invalid netmask: $input"
     stat=$?
     
-    exit 1
+    exit 4
   fi
   
   
@@ -221,20 +205,6 @@ return $stat
 
 }
 
-
-
-
-
-#ii=$(validate_netmask "$1")
-
-
-
-#echo "klklklk : $ii"
-
-
-
-
-
 #interface="eth0"
 #ips=(192.168.1.103 192.168.1.210 192.168.1.213)
 #netmasks=(255.0.0.0 255.255.0.0 255.255.255.0)
@@ -248,11 +218,19 @@ read -ra gateway <<< $4
 read -ra ldns <<< $5
 
 
-sudo sed -i '/config_'$interface'=/d' /etc/conf.d/net
-sudo sed -i '/routes_'$interface'=/d' /etc/conf.d/net
-sudo sed -i '/dns_servers_'$interface'=/d' /etc/conf.d/net
+#sudo sed -i '/config_'$interface'=/d' /etc/conf.d/net
+#sudo sed -i '/routes_'$interface'=/d' /etc/conf.d/net
+#sudo sed -i '/dns_servers_'$interface'=/d' /etc/conf.d/net
 
-# Loop through the lists of IPs and netmasks and write to file
+#if ! ifconfig "$interface"; then
+#  echo "do not Interface: ${interface}"
+#  exit 2
+#fi
+if [[ ! "$(ip link show ${interface} 2> /dev/null)" ]]; then
+  echo "Interface do not: ${interface}"
+  exit 2
+fi
+
 
 
 ip_netmask="config_$interface=\""
@@ -262,25 +240,25 @@ do
 
   ip=${ips[i]}
   netmask=${netmasks[i]}
+
+  if ! valid_ip $ip; then
+    echo "Invalid IP : ${ip}"
+    exit 3
+  fi
   
-  if valid_ip $ip && valid_netmask $netmask; then
+  if valid_netmask $netmask; then
   	cnvnetmask=$(converter_netmask "$netmask")
   	ip_netmask="${ip_netmask}"" "
         ip_netmask="${ip_netmask}""${ip}""$cnvnetmask"
   else
-    echo "Invalid IP or netmask: ${ip}/${netmask}"
+    echo "Invalid netmask: ${netmask}"
+    exit 4
   fi
 done
 
-
-echo "$ip_netmask\"" >> /etc/conf.d/net
-
-
-# Write gateway and DNS settings to file
-if valid_ip $gateway; then
-  echo "routes_$interface=\"default via ${gateway}\"" >> /etc/conf.d/net
-else
+if ! valid_ip $gateway; then
   echo "Invalid gateway IP: ${gateway}"
+  exit 5
 fi
 
 dns_net="dns_servers_$interface=\""
@@ -293,8 +271,17 @@ do
       dns_net="${dns_net}"" "
       dns_net="${dns_net}""${dns}"
   else
-  	echo "Invalid Dns : $dns"
+      echo "Invalid Dns : $dns"
+      exit 6
+  fi
 done
 
+sudo sed -i '/config_'$interface'=/d' /etc/conf.d/net
+sudo sed -i '/routes_'$interface'=/d' /etc/conf.d/net
+sudo sed -i '/dns_servers_'$interface'=/d' /etc/conf.d/net
+
+echo "$ip_netmask\"" >> /etc/conf.d/net
+echo "routes_$interface=\"default via ${gateway}\"" >> /etc/conf.d/net
 echo "$dns_net\"" >> /etc/conf.d/net
 
+/etc/init.d/net."$interface" restart

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 
 import falcon
 from app import log
@@ -88,7 +89,7 @@ class NetWorkViwer:
 
 
     def getNetmask(self, InterfaceName):
-        netMask = subprocess.run(['bashscript/net/infonet/getNetmask.sh'+ " " +InterfaceName], capture_output=True, text=True, shell=True)
+        netMask = subprocess.run(['bashscript/net/infonet/getNetmask.sh' + " " +InterfaceName], capture_output=True, text=True, shell=True)
 
         exitCodeNetmask = netMask.returncode
 
@@ -101,8 +102,8 @@ class NetWorkViwer:
         else:
             return "{" + "\"error\":" + "\"!!!cannot get NetMask information!!!\"" + "}"
 
-    def getDns(self):
-        Dns = subprocess.run(['bashscript/net/infonet/getDNS.sh'], capture_output=True, text=True, shell=True)
+    def getDns(self, InterfaceName):
+        Dns = subprocess.run(['bashscript/net/infonet/getDNS.sh' + " " +InterfaceName], capture_output=True, text=True, shell=True)
 
         exitCodeDns = Dns.returncode
 
@@ -110,6 +111,8 @@ class NetWorkViwer:
             return Dns.stdout
         elif exitCodeDns == 2:
             return "Interface does not exist."
+        elif exitCodeDns == 3:
+            return "DNS is not configured."
         else:
             return "Dns does not exist."
 
@@ -120,67 +123,132 @@ class NetWorkManager:
         self.netViewer = NetWorkViwer()
 
     def change_config(self, nameinterface, lip, lnetmask, gatway, ldns):
-        script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeIP.sh"
-        changeConfig = subprocess.run([script_path + " " + nameinterface + " " + lip + "" + lnetmask + "" + gatway + "" + ldns], capture_output=True, text=True, shell=True)
+        script_path = "bashscript/net/ip_cahnge.sh"
+        changeConfig = subprocess.run([script_path + " " + "\"" + nameinterface + "\"" + " " + "\"" + lip + "\"" + " " + "\"" + lnetmask + "\"" + " " + "\"" + gatway + "\"" + " " + "\"" + ldns + "\""], capture_output=True, text=True, shell=True)
 
         exitCodechangeConfig = changeConfig.returncode
 
-
-
-
-        if False:
-            return "config changed"
+        if exitCodechangeConfig == 0:
+            return "set config"
+        elif exitCodechangeConfig == 2:
+            return changeConfig.stdout
+        elif exitCodechangeConfig == 3:
+            return changeConfig.stdout
+        elif exitCodechangeConfig == 4:
+            return changeConfig.stdout
+        elif exitCodechangeConfig == 5:
+            return changeConfig.stdout
+        elif exitCodechangeConfig == 6:
+            return changeConfig.stdout
         else:
-            return "config dont changed"
+            return "do not set config"
 
-    def disableinterface(self, interfacename):
-        pass
+    def addNetWork(self, nameinterface):
+        script_path = "bashscript/net/addnetwork.sh"
+        addnetwork = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True, text=True, shell=True)
 
-    def enableinterface(self, interface):
-        pass
+        exitCodeaddnetwork= addnetwork.returncode
 
-    def disconnectinterface(self, interface):
-        pass
+        if exitCodeaddnetwork == 0:
+            return "added netnetwork"
+        elif exitCodeaddnetwork == 2:
+            return addnetwork.stdout
+        else:
+            return "do not add network"
 
-    def connectinterface(self, interface):
-        pass
+    def removeNetWork(self, nameinterface):
+        script_path = "bashscript/net/removeNetwork.sh"
+        removenetwork = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True, text=True, shell=True)
 
-    # def changeIP(self, nameinterface, ip):
-    #     script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeIP.sh"
-    #     subprocess.run([script_path+" "+ip+" "+nameinterface], shell=True)
-    #     ## check ip changed
-    #     getip = self.netViewer.getIp(nameinterface).replace("\n", "")
-    #     if str(getip) == ip:
-    #         return "ip changed"
-    #     else:
-    #         return "ip not changed"
+        exitCoderemovenetwork = removenetwork.returncode
 
-    # def changeNetmask(self, nameinterface, netmask, ip=""):
-    #
-    #     script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeNetmask.sh"
-    #
-    #     if ip == "":
-    #         getip = self.netViewer.getIp(nameinterface).replace("\n", "")
-    #         subprocess.run([script_path+" "+nameinterface+" "+str(getip)+" "+netmask], shell=True)
-    #
-    #     else:
-    #         subprocess.run([script_path+" "+nameinterface+" "+ip+" "+netmask], shell=True)
-    #
-    #
-    #     ##check done changed Netmask
-    #     getnetmask = self.netViewer.getNetmask(nameinterface).replace("\n", "")
-    #     if str(getnetmask) == netmask:
-    #         return "Netmask changed"
-    #     else:
-    #         return "Netmask not changed"
+        if exitCoderemovenetwork == 0:
+            return "removed netnetwork"
+        elif exitCoderemovenetwork == 2:
+            return removenetwork.stdout
+        else:
+            return "do not remove network"
 
-    # def changeDns(self, nameinterface,dnses):
-    #     script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeDns.sh"
-    #     subprocess.run([script_path + " " + nameinterface + " " + dnses], shell=True)
-    #
-    # def changeDefaultGetway(self, nameinterface, defway):
-    #     script_path = "/home/os1/Desktop/falcon_https/falcon_https/changeconfignet/changeDefaultGetway.sh"
-    #     subprocess.run([script_path + " " + nameinterface + " " + defway], shell=True)True
+    def disableinterface(self, nameinterface):
+        script_path = "bashscript/net/disablenet.sh"
+        disableinterface = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True,
+                                       text=True, shell=True)
+
+        exitCodedisableinterface = disableinterface.returncode
+
+        if exitCodedisableinterface == 0:
+            return "disable interface"
+        elif exitCodedisableinterface == 2:
+            return disableinterface.stdout
+        else:
+            return "do not disable interface"
+
+    def enableinterface(self, nameinterface):
+        script_path = "bashscript/net/enablenet.sh"
+        enableinterface = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True,
+                                          text=True, shell=True)
+
+        exitCodeenableinterface = enableinterface.returncode
+
+        if exitCodeenableinterface == 0:
+            return "enabled netnetwork"
+        elif exitCodeenableinterface == 2:
+            return enableinterface.stdout
+        else:
+            return "do not enable interface"
+
+    def checktypeip(self, nameinterface):
+        script_path = "bashscript/net/checkTypeIp.sh"
+        checktypeinterface = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True,
+                                         text=True, shell=True)
+
+        exitCodechecktypeinterface = checktypeinterface.returncode
+
+        if exitCodechecktypeinterface == 0:
+            return checktypeinterface.stdout
+        elif exitCodechecktypeinterface == 2:
+            return checktypeinterface.stdout
+        else:
+            return "can not checked interface"
+
+    def changetodhcpnetwork(self, nameinterface):
+        script_path = "bashscript/net/netstatic_dhcp.sh"
+        changetodhcp = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True, text=True, shell=True)
+
+        exitCodechangetodhcp = changetodhcp.returncode
+
+        if exitCodechangetodhcp == 0:
+            return "changed to dhcp"
+        elif exitCodechangetodhcp == 2:
+            return changetodhcp.stdout
+        else:
+            return "can not change to dhcp"
+    def checkstateinterface(self, nameinterface):
+        script_path = "bashscript/net/checkstat.sh"
+        checkstate = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True, text=True,
+                                 shell=True)
+
+        exitCodecheckstate = checkstate.returncode
+
+        if exitCodecheckstate == 0:
+            return checkstate.stdout
+        elif exitCodecheckstate == 2:
+            return checkstate.stdout
+        else:
+            return "can not checking state"
+
+    def getlistinterface(self, nameinterface):
+        script_path = "bashscript/net/getlistinterface.sh"
+        getlist = subprocess.run([script_path + " " + "\"" + nameinterface + "\""], capture_output=True, text=True, shell=True)
+
+        exitCodegetlist = getlist.returncode
+
+        if exitCodegetlist == 0:
+            return getlist.stdout
+        elif exitCodegetlist == 2:
+            return getlist.stdout
+        else:
+            return "can not get list"
 
 
 class SystemInfo:
@@ -292,7 +360,7 @@ class ObjNetWork:
                 resp.body = self.netviewer.getIp(req.params['namenet'])
         elif str(req.params['conf']).lower() == "state":
             if 'namenet' in req.params:
-                print ("")
+                print("")
                 #resp.body = self.netviewer.getState(req.params['namenet'])
         elif str(req.params['conf']).lower() == "defaultgetway":
             if 'namenet' in req.params:
@@ -301,9 +369,9 @@ class ObjNetWork:
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getNetmask(req.params['namenet'])
         elif str(req.params['conf']).lower() == "dns":
-            #if 'namenet' in req.params:
-                #resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
-            resp.body = self.netviewer.getDns().replace("\n", ",")
+            if 'namenet' in req.params:
+                resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
+            # resp.body = self.netviewer.getDns().replace("\n", ",")
 
 
     def on_post(self, req, resp):
@@ -315,31 +383,39 @@ class ObjNetWork:
                     if 'listnetmask' in req.params:
                         if 'gatway' in req.params:
                             if 'listdns':
-                                  resp.body = self.netmanager.change_config(req.params['namenet'], req.params['newip'])
-
-    #     elif str(req.params['conf']).lower() == "netmask":
-    #         if 'namenet' in req.params:
-    #             if 'newnetmask' in req.params:
-    #                 if 'newip' in req.params:
-    #                     resp.body = self.netManager.changeNetmask(req.params['namenet'], req.params['newnetmask'], req.params['newip'])
-    #
-    #     elif str(req.params['conf']).lower() == "dns":
-    #         if 'namenet' in req.params:
-    #             if 'newdns' in req.params:
-    #                 resp.body = self.netManager.changeDns(req.params['namenet'], req.params['newdns'])
-    #
-    #     elif str(req.params['conf']).lower() == "defaultgetway":
-    #         if 'namenet' in req.params:
-    #             if 'newdefaultgetway' in req.params:
-    #                 resp.body = self.netManager.changeDefaultGetway(req.params['namenet'], req.params['newdefaultgetway'])
+                                resp.body = self.netmanager.change_config(req.params['namenet'], req.params['listip'], req.params['listnetmask'], req.params['gatway'], req.params['listdns'])
+        elif str(req.params['conf']).lower() == "addnet":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.addNetWork(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "removenet":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.removeNetWork(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "disablenet":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.disableinterface(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "enablenet":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.enableinterface(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "checkstate":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.checkstateinterface(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "checktypeip":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.checktypeip(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "changetodhcp":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.changetodhcpnetwork(req.params['namenet'])
+        elif str(req.params['conf']).lower() == "listintr":
+            if 'namenet' in req.params:
+                resp.body = self.netmanager.getlistinterface(req.params['namenet'])
 
 
 api = falcon.API()
-api.add_route('/', ObjNetWork())
+api.add_route('/v1', ObjNetWork())
 #api.add_route('/net', ObjRequstClass())
 
 
 if __name__ == "__main__":
     from wsgiref import simple_server
-    httpd = simple_server.make_server('127.0.0.1', 5000, api)
+    httpd = simple_server.make_server('192.168.67.152', 5000, api)
     httpd.serve_forever()
