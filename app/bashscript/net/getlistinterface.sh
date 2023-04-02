@@ -2,6 +2,14 @@
 
 set -e
 
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script displays the interfaces that are active or inactive."
+  exit 0
+fi
+
 # Get list of network interfaces
 interfaces=$(ip link show | awk -F': ' '{print $2}' | grep -v lo)
 

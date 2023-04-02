@@ -1,5 +1,19 @@
 #!/bin/bash
 
+set -e
+
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script displays the amount of swap and the amount of swap used.
+
+How to use:
+name script"
+  exit 0
+fi
+
 # Get the used memory and swap in kilobytes
 mem_used=$(free -k | awk 'NR==2{print $3}')
 swap_used=$(free -k | awk 'NR==4{print $3}')

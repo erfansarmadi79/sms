@@ -1,5 +1,25 @@
 #!/bin/bash
 
+set -e
+
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script is used to add a network interface.
+
+Requirements :
+This script must be executed with the sudo command.
+
+How to use:
+Script name + interface name
+
+tip :
+If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
+  exit 0
+fi
+
 interface=$1
 
 

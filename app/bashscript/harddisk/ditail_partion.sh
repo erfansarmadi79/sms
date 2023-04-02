@@ -1,5 +1,17 @@
 #!/bin/bash
 
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script displays the list of system hard disks along with their model.
+
+How to use:
+name script"
+  exit 0
+fi
 # Get a list of block devices with partitions
 devices=$(lsblk -d -n -o NAME -e 7)
 

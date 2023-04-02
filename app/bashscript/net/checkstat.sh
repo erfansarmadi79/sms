@@ -1,5 +1,21 @@
 #!/bin/bash
 
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script is for displaying whether the interface is active or inactive, which displays the status in the form of a message.
+
+How to use:
+Script name + interface name
+
+tip :
+If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
+  exit 0
+fi
+
 # Prompt the user for a network interface name
 interface=$1
 

@@ -1,6 +1,22 @@
 #!/bin/bash
 
-#set -e
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script displays the status of the memory, such as: the amount of consumption and the available amount, etc.
+
+Those in need:
+To run this script, you need to install dmidecode.
+And to run this script, you need sudo.
+
+How to use:
+The name of the script"
+  exit 0
+fi
+
 
 # Get total memory available
 total_mem=$(free -h | awk '/^Mem:/{print $2}' | sed 's/i//g')

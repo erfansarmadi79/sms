@@ -1,5 +1,19 @@
 #!/bin/bash
 
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+This script displays the status of each CPU core.
+Requirements :
+To run this script, you need to install Sysstat.
+How to use:
+The name of the script"
+  exit 0
+fi
+
 # Get the number of processor cores
 CORES=$(nproc)
 
