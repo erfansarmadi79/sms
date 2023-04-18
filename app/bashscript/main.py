@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import time
 
 import falcon
+
 from app import log
 import subprocess
+
+from auth import Authorize
 
 from app import ManageLogging
 
@@ -400,12 +402,15 @@ class NetWorkManager:
             ManageLogging.LoggingManager().set_report("can not get list")
             return "can not get list"
 
+
+
 class APINetWork:
 
     def __init__(self):
         self.netviewer = NetWorkViwer()
         self.netmanager = NetWorkManager()
 
+    @falcon.before(Authorize())
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -445,7 +450,7 @@ class APINetWork:
             resp.status = falcon.HTTP_400
             ManageLogging.LoggingManager().set_report("Error 404 : not params typeconf")
 
-
+    @falcon.before(Authorize())
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -528,6 +533,8 @@ class APINetWork:
 class APISystemInfo:
     def __init__(self):
         self.sys = SystemInfo()
+
+    @falcon.before(Authorize())
     def on_get(self, req, resp):
         if req.params == {}:
              resp.body = str(self.sys.my_systeminfo())
@@ -543,7 +550,7 @@ api.add_route('/v1/net', APINetWork())
 
 if __name__ == "__main__":
     from wsgiref import simple_server
-    httpd = simple_server.make_server('192.168.67.153', 5000, api)
+    httpd = simple_server.make_server('0.0.0.0', 5000, api)
     ManageLogging.LoggingManager().set_report("start API server 192.168.67.153:5000")
     httpd.serve_forever()
 
