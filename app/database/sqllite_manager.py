@@ -25,11 +25,15 @@ class DatabaseSql:
         else:
             return "existed user"
 
-    def Delete(self, id):
-        pass
+    def Delete(self, username):
 
-    def Update(self, id, name, uusername, passwd, type, ips):
-        pass
+        self.c.execute("DELETE FROM usermanager WHERE username = \"" + username + "\"")
+        return self.con.commit()
+
+    def Update(self, username, name, passwd, type, ips):
+
+        self.c.execute("UPDATE usermanager SET name = \'" + name + "\', passwd = \'" + passwd + "\', type = \'" + type + "\', iplimited = \'" + ips + "\' WHERE username = \"" + username + "\"")
+        return self.con.commit()
 
     def getData(self):
         self.c.execute("SELECT * FROM usermanager")
@@ -54,18 +58,20 @@ class DatabaseSql:
             return False
 
     def validationIpUser(self, username, ip):
+
         self.c.execute(
             "SELECT iplimited FROM usermanager WHERE username = \"" + username + "\"")
-        rows = self.c.fetchall()
-        ip_list = [row[0] for row in rows]
+        rows = str(self.c.fetchone()).replace("(", "").replace(")", "").replace("\'", "").split(",")
+
+        rows.pop(len(rows)-1)
+        ip_list = [row for row in rows]
 
         if ip in ip_list:
             return True
         else:
             return False
 
-da = DatabaseSql()
 
-da.validationIpUser("sarmadi123", "192.168.111.1")
+
 
 
