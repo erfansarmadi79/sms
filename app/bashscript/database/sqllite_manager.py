@@ -18,17 +18,26 @@ class DatabaseSql:
     def Insert(self, name, username, passwd, type, ips):
 
         if self.checkUsername(username):
-            self.c.execute(
-                "INSERT INTO usermanager VALUES (\'" + name + "\',\'" + username + "\',\'" + passwd + "\',\'" + type + "\',\'" + ips + "\')")
-            self.con.commit()
-            return "added user"
+            try :
+                self.c.execute("INSERT INTO usermanager VALUES (\'" + name + "\',\'" + username + "\',\'" + passwd + "\',\'" + type + "\',\'" + ips + "\')")
+                self.con.commit()
+                return "added user"
+            except:
+                return "don't added"
         else:
-            return "existed user"
+            return "user existed"
 
     def Delete(self, username):
 
-        self.c.execute("DELETE FROM usermanager WHERE username = \"" + username + "\"")
-        return self.con.commit()
+        if self.checkUsername(username) == False:
+            try:
+                self.c.execute("DELETE FROM usermanager WHERE username = \"" + username + "\"")
+                return self.con.commit()
+            except:
+                return "cannot remove "
+
+        else:
+            return "user existed"
 
     def Update(self, username, name, passwd, type, ips):
 
@@ -36,8 +45,11 @@ class DatabaseSql:
         return self.con.commit()
 
     def getData(self):
-        self.c.execute("SELECT * FROM usermanager")
-        return self.c.fetchone()
+        try:
+            self.c.execute("SELECT * FROM usermanager")
+            return self.c.fetchone()
+        except:
+            return "cannot getdata"
 
     def checkUsername(self, username):
         self.c.execute(

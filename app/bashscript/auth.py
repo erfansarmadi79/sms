@@ -1,15 +1,21 @@
 import falcon
 import base64
 
+import database.sqllite_manager as sql_data
+
 class Authorize(object):
 
     def __init__(self):
+
+        self.sql_db = sql_data.DatabaseSql()
+
         self.user_accounts = {
             'test': 'mypassword'
         }
 
     def auth_basic(self, username, password):
-        if username in self.user_accounts and self.user_accounts[username] == password:
+        #if username in self.user_accounts and self.user_accounts[username] == password:
+        if self.sql_db.UserAuthantication(username, password):
             print('your have access - welcom')
         else:
             raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
@@ -20,9 +26,6 @@ class Authorize(object):
 
         client_ip = req.remote_addr
 
-        if client_ip not in ALLOWED_IPS:
-            raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
-
         auth_exp = req.auth.split(' ') if not None else (None, None, )
 
         if auth_exp[0].lower() == 'basic':
@@ -32,6 +35,10 @@ class Authorize(object):
             self.auth_basic(username, password)
         else:
             raise falcon.HTTPNotImplemented('Not Implemented', 'You don\'t use the right auth method')
+
+            # if client_ip not in ALLOWED_IPS:
+        if self.sql_db.validationIpUser(username, client_ip):
+            raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
 
 # class ObjResource:
 #     @falcon.before(Authorize())
