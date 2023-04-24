@@ -1,0 +1,8 @@
+{
+	"config": {
+		"loger": {"showlog": "yes",
+				"path_file": "/var/log/srd/"},
+		"changesetting": {"allowed": "true"}
+
+	}
+}

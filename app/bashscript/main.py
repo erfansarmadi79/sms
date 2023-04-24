@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 
 import falcon
 
@@ -8,6 +9,10 @@ import subprocess
 from auth import Authorize
 
 from app import ManageLogging
+
+import config.config
+
+import database.sqllite_manager as db
 
 # from app.middleware import AuthHandler, JSONTranslator, DatabaseSessionManager
 # from app.database import db_session, init_session
@@ -454,13 +459,27 @@ class APINetWork:
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
+        auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+        if auth_exp[0].lower() == 'basic':
+            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+            self.username = auth[0]
+
         if str(req.params['conf']).lower() == "changeconfig":
             if 'namenet' in req.params:
                 if 'listip' in req.params:
                     if 'listnetmask' in req.params:
                         if 'gatway' in req.params:
                             if 'listdns':
-                                resp.body = self.netmanager.change_config(req.params['namenet'], req.params['listip'], req.params['listnetmask'], req.params['gatway'], req.params['listdns'])
+                                if config.config().ChangeSetting():
+                                    if db.DatabaseSql().getPermition(self.username):
+                                        resp.body = self.netmanager.change_config(req.params['namenet'], req.params['listip'], req.params['listnetmask'], req.params['gatway'], req.params['listdns'])
+                                    else:
+                                        raise falcon.HTTPNotImplemented('Not Permition',
+                                                                        'You haven\'t Permition')
+                                else:
+                                    raise falcon.HTTPNotImplemented('Not Permition',
+                                                                    'You haven\'t Permition')
                             else:
                                 resp.status = falcon.HTTP_400
                                 ManageLogging.LoggingManager().set_report("Error 404 : not params listdns")

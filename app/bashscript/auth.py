@@ -13,12 +13,16 @@ class Authorize(object):
             'test': 'mypassword'
         }
 
-    def auth_basic(self, username, password):
-        #if username in self.user_accounts and self.user_accounts[username] == password:
-        if self.sql_db.UserAuthantication(username, password):
-            print('your have access - welcom')
+    def auth_basic(self, username, password, client_ip):
+
+        if self.sql_db.validationIpUser(username, client_ip):
+            # if username in self.user_accounts and self.user_accounts[username] == password:
+            if self.sql_db.UserAuthantication(username, password):
+                print('your have access - welcom')
+            else:
+                raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
         else:
-            raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
+            raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
 
     def __call__(self, req, resp, resource, params):
         ALLOWED_IPS = ['127.0.0.1', '192.168.0.1', '192.168.111.2', '192.168.111.1']
@@ -32,13 +36,9 @@ class Authorize(object):
             auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
             username = auth[0]
             password = auth[1]
-            self.auth_basic(username, password)
+            self.auth_basic(username, password, client_ip)
         else:
             raise falcon.HTTPNotImplemented('Not Implemented', 'You don\'t use the right auth method')
-
-            # if client_ip not in ALLOWED_IPS:
-        if self.sql_db.validationIpUser(username, client_ip):
-            raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
 
 # class ObjResource:
 #     @falcon.before(Authorize())

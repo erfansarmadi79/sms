@@ -83,7 +83,14 @@ class DatabaseSql:
         else:
             return False
 
+    def getPermition(self, username):
+        self.c.execute(
+            "SELECT type FROM usermanager WHERE username = \"" + username + "\"")
 
+        result = self.c.fetchone()[0]
 
-
+        if result == "admin":
+            return True
+        elif result == "user":
+            return False
 
