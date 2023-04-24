@@ -1,3 +1,4 @@
+import ipaddress
 import sqlite3
 
 
@@ -78,10 +79,18 @@ class DatabaseSql:
         rows.pop(len(rows)-1)
         ip_list = [row for row in rows]
 
-        if ip in ip_list:
+        client_ip = ipaddress.ip_address(ip)
+        allowed_network = ipaddress.ip_network(rows)
+
+        if client_ip in allowed_network:
             return True
         else:
             return False
+
+        # if ip in ip_list:
+        #     return True
+        # else:
+        #     return False
 
     def getPermition(self, username):
         self.c.execute(

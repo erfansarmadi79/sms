@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Check if the CPU temperature file exists
+if [ ! -f "/sys/class/thermal/thermal_zone0/temp" ]; then
+    echo "CPU temperature file not found."
+    exit 1
+fi
+
+# Retrieve CPU temperature
+cpu_temp=$(cat /sys/class/thermal/thermal_zone0/temp)
+cpu_temp_c=$(echo "$cpu_temp / 1000" | bc -l)
+
+echo "CPU temperature: $cpu_temp_c°C ($cpu_temp_f°F)"

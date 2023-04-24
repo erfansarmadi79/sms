@@ -16,7 +16,6 @@ class Authorize(object):
     def auth_basic(self, username, password, client_ip):
 
         if self.sql_db.validationIpUser(username, client_ip):
-            # if username in self.user_accounts and self.user_accounts[username] == password:
             if self.sql_db.UserAuthantication(username, password):
                 print('your have access - welcom')
             else:
