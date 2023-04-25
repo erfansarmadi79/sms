@@ -6,20 +6,20 @@ set -e
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo "
 Description :
-This script is for changing the interface configuration in the file etc/conf.d/net, which in the input of this script receives the interface name, IP list, Netmask list, Gateway list, and DNS list, and authenticates all entries that if any of If the entries are wrong, the appropriate message will be displayed.
+  This script is for changing the interface configuration in the file etc/conf.d/net, which in the input of this script receives the interface name, IP list, Netmask list, Gateway list, and DNS list, and authenticates all entries that if any of If the entries are wrong, the appropriate message will be displayed.
 
 Requirements :
 
-sudo is required to run this script.
-It needs to be installed nslookup for DNS authentication.
+  sudo is required to run this script.
+  It needs to be installed nslookup for DNS authentication.
 
 How to use:
-Script Name + Interface Name + IP List + Net Mask + Gateway List + DNS List
+  Script Name + Interface Name + IP List + Net Mask + Gateway List + DNS List
 for example :
-./ip_change.sh eth0 \"192.168.1.221 192.168.1.210 192.168.1.213\" \"255.0.0.0 255.255.0.0 255.255.255.0\" 10.42.0.240 \"8.8.8.8 4.2.2.3\"
+  ./ip_change.sh eth0 \"192.168.1.221 192.168.1.210 192.168.1.213\" \"255.0.0.0 255.255.0.0 255.255.255.0\" 10.42.0.240 \"8.8.8.8 4.2.2.3\"
 
 tip :
-If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
+  If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
   exit 0
 fi
 

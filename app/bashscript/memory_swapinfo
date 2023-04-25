@@ -7,10 +7,10 @@ set -e
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo "
 Description :
-This script displays the amount of swap and the amount of swap used.
+  This script displays the amount of swap and the amount of swap used.
 
 How to use:
-name script"
+  name script"
   exit 0
 fi
 

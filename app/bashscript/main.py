@@ -57,14 +57,16 @@ class SystemInfo:
         self.output_str += ",\n"
         self.output_str += self.cpuInfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
-        self.output_str += "\n"
+        self.output_str += ",\n"
+        self.output_str += self.cpu_temp()
+        self.output_str = self.output_str[:len(self.output_str) - 1]
+        self.output_str += ",\n"
         self.output_str += self.cpucoreInfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
-        self.output_str += "\n"
+        self.output_str += ",\n"
         self.output_str += self.hardinfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
         self.output_str += "\n"
-
 
         self.output_str += "}"
 
@@ -131,6 +133,19 @@ class SystemInfo:
         else:
             ManageLogging.LoggingManager().set_report("cannot get CpuCore information")
             return "\"CpuCoreInfo\":" + "\"!!!cannot get CpuCore information\"!!!"
+
+    def cpu_temp(self):
+        cputemp = subprocess.run(
+            ['./runfile cpu_temp'], capture_output=True, text=True, shell=True)
+
+        exitCodeCpuCore = cputemp.returncode
+
+        if exitCodeCpuCore == 0:
+            ManageLogging.LoggingManager().set_report(cputemp.stdout)
+            return cputemp.stdout
+        else:
+            ManageLogging.LoggingManager().set_report("cannot get CpuTemp information")
+            return "\"CpuTemp\":" + "\"!!!cannot get CpuTemp information\"!!!"
 
     def hardinfo(self):
         hardinfo = subprocess.run(['./runfile hard_info'], capture_output=True, text=True, shell=True)

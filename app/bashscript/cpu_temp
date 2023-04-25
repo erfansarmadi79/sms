@@ -1,13 +1,28 @@
 #!/bin/bash
 
+
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+  This script displays the temperature of system cpu.
+  How to use:
+  The name of the script"
+  exit 0
+fi
+
 # Check if the CPU temperature file exists
-if [ ! -f "/sys/class/thermal/thermal_zone0/temp" ]; then
+if [ ! -f "/sys/class/thermal/thermal_zone2/temp" ]; then
     echo "CPU temperature file not found."
     exit 1
 fi
 
 # Retrieve CPU temperature
-cpu_temp=$(cat /sys/class/thermal/thermal_zone0/temp)
+cpu_temp=$(cat /sys/class/thermal/thermal_zone2/temp)
 cpu_temp_c=$(echo "$cpu_temp / 1000" | bc -l)
 
-echo "CPU temperature: $cpu_temp_c°C ($cpu_temp_f°F)"
+echo "\"CpuTemp\": {"
+echo "\"CPU temperature\": \"$(echo "scale=2; $cpu_temp_c / 1000" | bc)°C\""
+echo "   }"

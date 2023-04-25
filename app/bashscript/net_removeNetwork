@@ -7,16 +7,16 @@ set -e
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo "
 Description :
-This script is used to remove a network interface.
+  This script is used to remove a network interface.
 
 Requirements :
-This script must be executed with the sudo command.
+  This script must be executed with the sudo command.
 
 How to use:
-Script name + interface name
+  Script name + interface name
 
 tip :
-If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
+  If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
   exit 0
 fi
 

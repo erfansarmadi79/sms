@@ -6,7 +6,7 @@ set -e
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo "
 Description :
-This script displays the interfaces that are active or inactive."
+  This script displays the interfaces that are active or inactive."
   exit 0
 fi
 
