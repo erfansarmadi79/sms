@@ -9,21 +9,21 @@ class Authorize(object):
 
         self.sql_db = sql_data.DatabaseSql()
 
-        self.user_accounts = {
-            'test': 'mypassword'
-        }
-
     def auth_basic(self, username, password, client_ip):
 
-        if self.sql_db.validationIpUser(username, client_ip):
-            if self.sql_db.UserAuthantication(username, password):
-                print('your have access - welcom')
+        if self.sql_db.checkUsername(username) != True:
+            if self.sql_db.validationIpUser(username, client_ip):
+                if self.sql_db.UserAuthantication(username, password):
+                    print('your have access - wellcom')
+                else:
+                    raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
             else:
-                raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
+                raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
         else:
-            raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
+            raise falcon.HTTPNotImplemented('Unauthorized', 'Your access does not exist ')
 
     def __call__(self, req, resp, resource, params):
+
         ALLOWED_IPS = ['127.0.0.1', '192.168.0.1', '192.168.111.2', '192.168.111.1']
         print('before trigger - class: Authorize')
 

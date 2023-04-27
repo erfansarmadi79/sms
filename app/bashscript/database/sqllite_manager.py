@@ -4,23 +4,27 @@ import sqlite3
 
 class DatabaseSql:
     def __init__(self):
-        self.con = sqlite3.connect('userdatabase.db')
+        self.con = sqlite3.connect('database/userdatabase.db')
+
 
         self.c = self.con.cursor()
 
-        # self.c.execute("""CREATE TABLE usermanager (
-        #             name text,
-        #             username text,
-        #             passwd text,
-        #             type text,
-        #             iplimited text
-        #             )""")
 
+
+    def createtable(self):
+
+        self.c.execute("""CREATE TABLE usermanager (
+                    name text,
+                    username text,
+                    passwd text,
+                    type text,
+                    iplimited text
+                    )""")
     def Insert(self, name, username, passwd, type, ips):
 
         if self.checkUsername(username):
-            try :
-                self.c.execute("INSERT INTO usermanager VALUES (\'" + name + "\',\'" + username + "\',\'" + passwd + "\',\'" + type + "\',\'" + ips + "\')")
+            try:
+                self.c.execute("INSERT INTO usermanager VALUES (\"" + name + "\",\"" + username + "\",\"" + passwd + "\", \"" + type + "\",\"" + ips + "\")")
                 self.con.commit()
                 return "added user"
             except:
@@ -48,13 +52,12 @@ class DatabaseSql:
     def getData(self):
         try:
             self.c.execute("SELECT * FROM usermanager")
-            return self.c.fetchone()
+            return self.c.fetchall()
         except:
             return "cannot getdata"
 
     def checkUsername(self, username):
-        self.c.execute(
-            "SELECT * FROM usermanager WHERE username = \"" + username + "\"")
+        self.c.execute("SELECT * FROM usermanager WHERE username = \"" + username + "\"")
 
         if self.c.fetchone() is None:
             return True
@@ -72,15 +75,16 @@ class DatabaseSql:
 
     def validationIpUser(self, username, ip):
 
-        self.c.execute(
-            "SELECT iplimited FROM usermanager WHERE username = \"" + username + "\"")
-        rows = str(self.c.fetchone()).replace("(", "").replace(")", "").replace("\'", "").split(",")
-
+        try:
+            self.c.execute("SELECT iplimited FROM usermanager WHERE username = \"" + username + "\"")
+            rows = str(self.c.fetchone()).replace("(", "").replace(")", "").replace("\'", "").split(",")
+        except:
+            return 2
         rows.pop(len(rows)-1)
         ip_list = [row for row in rows]
 
         client_ip = ipaddress.ip_address(ip)
-        allowed_network = ipaddress.ip_network(rows)
+        allowed_network = ipaddress.ip_network(rows[0])
 
         if client_ip in allowed_network:
             return True
@@ -103,3 +107,10 @@ class DatabaseSql:
         elif result == "user":
             return False
 
+
+# db = DatabaseSql()
+#
+# # #db.createtable()
+#
+# #db.getData()
+# db.Insert("erfan", "erfan321", "1234", "user", "10.42.0.182")

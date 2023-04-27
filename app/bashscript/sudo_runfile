@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+exite 1
 set -e
 
 # Show help message if user provides -h or --help option

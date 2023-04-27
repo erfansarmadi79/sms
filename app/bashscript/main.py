@@ -73,7 +73,7 @@ class SystemInfo:
         return str(self.output_str)
 
     def memoryinfo(self):
-        meminfo = subprocess.run(['./sudo_runfile memory_info'], capture_output=True, text=True, shell=True)
+        meminfo = subprocess.run(['./sudo_runfile --help'], capture_output=True, text=True, shell=True)
 
         exitCodeMemory = meminfo.returncode
 
@@ -584,7 +584,7 @@ api.add_route('/v1/net', APINetWork())
 
 if __name__ == "__main__":
     from wsgiref import simple_server
-    httpd = simple_server.make_server('0.0.0.0', 5000, api)
-    ManageLogging.LoggingManager().set_report("start API server 192.168.67.153:5000")
+    httpd = simple_server.make_server('10.42.0.213', 5000, api)
+    ManageLogging.LoggingManager().set_report("start API server 10.42.0.213:5000")
     httpd.serve_forever()
 
