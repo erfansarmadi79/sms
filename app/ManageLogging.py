@@ -1,13 +1,25 @@
 import getpass as gt
 import logging
+
+from app.bashscript.config import config
 import os
 from datetime import datetime
 import pytz
 
+
+class Config:
+
+    def __init__(self):
+        self._config_app = config.ChangeSetting()
+
+    def get_pathLoger(self):
+        return self._config_app.get_pathlog()
 class LoggingManager:
 
     def __init__(self):
-        path_file = "/var/log/remote/"
+        self.conf = Config()
+        #path_file = "/var/log/sms/"
+        path_file = self.conf.get_pathLoger()
         # if os.path.isdir(path_file):
         #     logging.basicConfig(filename=path_file+"apprmt.log", filemode='a')
         # else:
@@ -16,7 +28,7 @@ class LoggingManager:
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
-        self.handler = logging.FileHandler(path_file+'apprmt.log')
+        self.handler = logging.FileHandler(path_file+'appsms.log')
         self.handler.setLevel(logging.INFO)
         self.logger.addHandler(self.handler)
 

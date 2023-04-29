@@ -1,7 +1,6 @@
 {
 	"config": {
-		"loger": {"showlog": "yes",
-				"path_file": "/var/log/srd/"},
+		"loger": {"path_file": "/var/log/sms/"},
 		"changesetting": {"allowed": "true"}
 
 	}
