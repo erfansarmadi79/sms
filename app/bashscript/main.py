@@ -75,94 +75,98 @@ class SystemInfo:
 
     def memoryinfo(self):
 
-        meminfo = subprocess.run(['bash', 'sudo_runfile', 'memory_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        meminfo = subprocess.Popen(['./sudo_runfile', 'memory_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = meminfo.communicate()
 
-        exitCodeMemory = meminfo.returncode
+        exitCodeMemory = meminfo.wait()
 
         if exitCodeMemory == 0:
-            ManageLogging.LoggingManager().set_report(meminfo.stdout.decode('utf-8'))
-            return meminfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get memory information")
             return "\"memory\":"+"\"!!!cannot get memory information\"!!!"
 
     def swapmemory(self):
-        swpinfo = subprocess.run(['bash', './runfile', 'memory_swapinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        swpinfo = subprocess.Popen(['./runfile', 'memory_swapinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeswapinfo = swpinfo.returncode
+        stdout, stderr = swpinfo.communicate()
+
+        exitCodeswapinfo = swpinfo.wait()
 
         if exitCodeswapinfo == 0:
-            ManageLogging.LoggingManager().set_report(swpinfo.stdout.decode('utf-8'))
-            return swpinfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get swap information")
             return "\"swap\":" + "\"!!!cannot get swap information\"!!!"
 
     def graphicinfo(self):
-        grphinfo = subprocess.run(['bash', './runfile', 'graphic_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        grphinfo = subprocess.Popen(['./runfile', 'graphic_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeGraphic = grphinfo.returncode
+        stdout, stderr = grphinfo.communicate()
+
+        exitCodeGraphic = grphinfo.wait()
 
         if exitCodeGraphic == 0:
-            ManageLogging.LoggingManager().set_report(grphinfo.stdout.decode('utf-8'))
-            return grphinfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get graphic information")
             return "\"graphic\":" + "\"!!!cannot get graphic information\"!!!"
 
     def cpuInfo(self):
-        cpuinfo = subprocess.run(
-            ['bash', './runfile', 'cpu_info.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        exitCodeCpu = cpuinfo.returncode
+        cpuinfo = subprocess.Popen(
+            ['./runfile', 'cpu_info.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = cpuinfo.communicate()
+        exitCodeCpu = cpuinfo.wait()
 
         if exitCodeCpu == 0:
-            ManageLogging.LoggingManager().set_report(cpuinfo.stdout.decode('utf-8'))
-            return cpuinfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get Cpu information")
             return "\"CpuInfo\":" + "\"!!!cannot get Cpu information\"!!!"
 
     def cpucoreInfo(self):
-        cpucoreinfo = subprocess.run(
-            ['bash', './runfile', 'cpu_usedcore'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        exitCodeCpuCore = cpucoreinfo.returncode
+        cpucoreinfo = subprocess.Popen(
+            ['./runfile', 'cpu_usedcore'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = cpucoreinfo.communicate()
+        exitCodeCpuCore = cpucoreinfo.wait()
 
         if exitCodeCpuCore == 0:
-            ManageLogging.LoggingManager().set_report(cpucoreinfo.stdout.decode('utf-8'))
-            return cpucoreinfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get CpuCore information")
             return "\"CpuCoreInfo\":" + "\"!!!cannot get CpuCore information\"!!!"
 
     def cpu_temp(self):
-        cputemp = subprocess.run(
-            ['bash', './runfile', 'cpu_temp'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        exitCodeCpuCore = cputemp.returncode
+        cputemp = subprocess.Popen(
+            ['./runfile', 'cpu_temp'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = cputemp.communicate()
+        exitCodeCpuCore = cputemp.wait()
 
         if exitCodeCpuCore == 0:
-            ManageLogging.LoggingManager().set_report(cputemp.stdout.decode('utf-8'))
-            return cputemp.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get CpuTemp information")
             return "\"CpuTemp\":" + "\"!!!cannot get CpuTemp information\"!!!"
 
     def hardinfo(self):
-        hardinfo = subprocess.run(['bash', './runfile', 'hard_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        hardinfo = subprocess.Popen(['./runfile', 'hard_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeHard = hardinfo.returncode
+        stdout, stderr = hardinfo.communicate()
+
+        exitCodeHard = hardinfo.wait()
 
         if exitCodeHard == 0:
-            ManageLogging.LoggingManager().set_report(hardinfo.stdout.decode('utf-8'))
-            return hardinfo.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("cannot get HardDisk information")
             return "\"Hard_disk\":" + "\"!!!cannot get HardDisk information\"!!!"
-
-
-
 
 class NetWorkViwer:
 
@@ -195,13 +199,15 @@ class NetWorkViwer:
     def getIp(self, InterfaceName):
 
 
-        ipNet = subprocess.run(['bash', './runfile', 'net_getip', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ipNet = subprocess.Popen(['./runfile', 'net_getip', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeipnet = ipNet.returncode
+        stdout, stderr = ipNet.communicate()
+
+        exitCodeipnet = ipNet.wait()
 
         if exitCodeipnet == 0:
-            ManageLogging.LoggingManager().set_report(ipNet.stdout.decode('utf-8'))
-            return ipNet.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodeipnet == 2:
             ManageLogging.LoggingManager().set_report("Interface does not exist.")
             return "Interface does not exist."
@@ -210,13 +216,15 @@ class NetWorkViwer:
             return "{"+"\"error\":"+"\"!!!cannot get ip information!!!\""+"}"
 
     def getDefaultgetway(self, InterfaceName):
-        defaltGetway = subprocess.run(['bash', './runfile', 'net_getDefaultgetway', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        defaltGetway = subprocess.Popen(['./runfile', 'net_getDefaultgetway', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodedefgetway = defaltGetway.returncode
+        stdout, stder = defaltGetway.communicate()
+
+        exitCodedefgetway = defaltGetway.wait()
 
         if exitCodedefgetway == 0:
-            ManageLogging.LoggingManager().set_report(defaltGetway.stdout.decode('utf-8'))
-            return defaltGetway.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodedefgetway == 2:
             ManageLogging.LoggingManager().set_report("Interface does not exist.")
             return "Interface does not exist."
@@ -226,14 +234,16 @@ class NetWorkViwer:
 
 
     def getNetmask(self, InterfaceName):
-        netMask = subprocess.run(['bash', './runfile', 'net_getNetmask', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        netMask = subprocess.Popen(['bash', './runfile', 'net_getNetmask', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeNetmask = netMask.returncode
+        stdout, stder = netMask.communicate()
+
+        exitCodeNetmask = netMask.wait()
 
         if exitCodeNetmask == 0:
-            ManageLogging.LoggingManager().set_report(netMask.stdout.decode('utf-8'))
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
 
-            return netMask.stdout.decode('utf-8')
+            return stdout.decode('utf-8')
 
         elif exitCodeNetmask == 2:
             ManageLogging.LoggingManager().set_report("Interface does not exist.")
@@ -266,147 +276,163 @@ class NetWorkManager:
         self.netViewer = NetWorkViwer()
 
     def change_config(self, nameinterface, lip, lnetmask, gatway, ldns):
-        changeConfig = subprocess.run(['bash', './sudo_runfile', 'net_ip_cahnge', "\"" + nameinterface + "\"", "\"" + lip + "\"", "\"" + lnetmask + "\"", "\"" + gatway + "\"", "\"" + ldns + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        changeConfig = subprocess.Popen(['./sudo_runfile', 'net_ip_cahnge', "\"" + nameinterface + "\"", "\"" + lip + "\"", "\"" + lnetmask + "\"", "\"" + gatway + "\"", "\"" + ldns + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodechangeConfig = changeConfig.returncode
+        stdout, stder = changeConfig.communicate()
+
+        exitCodechangeConfig = changeConfig.wait()
 
         if exitCodechangeConfig == 0:
             return "set config"
             ManageLogging.LoggingManager().set_report("change sucess NetWorkinterface ("+nameinterface+") ips : "+lip+"netmasks : "+lnetmask+"gatway : "+gatway+"dnss : "+ldns)
         elif exitCodechangeConfig == 2:
-            ManageLogging.LoggingManager().set_report(changeConfig.stdout.decode('utf-8'))
-            return changeConfig.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodechangeConfig == 3:
-            ManageLogging.LoggingManager().set_report(changeConfig.stdout.decode('utf-8'))
-            return changeConfig.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodechangeConfig == 4:
-            ManageLogging.LoggingManager().set_report(changeConfig.stdout.decode('utf-8'))
-            return changeConfig.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodechangeConfig == 5:
-            ManageLogging.LoggingManager().set_report(changeConfig.stdout.decode('utf-8'))
-            return changeConfig.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodechangeConfig == 6:
-            ManageLogging.LoggingManager().set_report(changeConfig.stdout.decode('utf-8'))
-            return changeConfig.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("do not set config")
             return "do not set config"
 
     def addNetWork(self, nameinterface):
-        addnetwork = subprocess.run(['bash', './sudo_runfile', 'net_addnetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        addnetwork = subprocess.Popen(['./sudo_runfile', 'net_addnetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeaddnetwork= addnetwork.returncode
+        stdout, stder = addnetwork.communicate()
+
+        exitCodeaddnetwork= addnetwork.wait()
 
         if exitCodeaddnetwork == 0:
             ManageLogging.LoggingManager().set_report("added netnetwork:" + nameinterface)
             return "added netnetwork"
         elif exitCodeaddnetwork == 2:
-            ManageLogging.LoggingManager().set_report(addnetwork.stdout.decode('utf-8'))
-            return addnetwork.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("do not add network")
             return "do not add network"
 
     def removeNetWork(self, nameinterface):
-        removenetwork = subprocess.run(['bash', './sudo_runfile', 'net_removeNetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        exitCoderemovenetwork = removenetwork.returncode
+        removenetwork = subprocess.Popen(['./sudo_runfile', 'net_removeNetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stder = removenetwork.communicate()
+        exitCoderemovenetwork = removenetwork.wait()
 
         if exitCoderemovenetwork == 0:
             ManageLogging.LoggingManager().set_report("remove netnetwork:" + nameinterface)
             return "removed netnetwork"
         elif exitCoderemovenetwork == 2:
-            ManageLogging.LoggingManager().set_report(removenetwork.stdout.decode('utf-8'))
-            return removenetwork.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("do not remove network")
             return "do not remove network"
 
     def disableinterface(self, nameinterface):
-        disableinterface = subprocess.run(['bash', './sudo_runfile', 'net_disablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        disableinterface = subprocess.Popen(['./sudo_runfile', 'net_disablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodedisableinterface = disableinterface.returncode
+        stdout, stder = disableinterface.communicate()
+
+        exitCodedisableinterface = disableinterface.wait()
 
         if exitCodedisableinterface == 0:
             ManageLogging.LoggingManager().set_report("disable interface :" + nameinterface)
             return "disable interface"
         elif exitCodedisableinterface == 2:
-            ManageLogging.LoggingManager().set_report(disableinterface.stdout.decode('utf-8'))
-            return disableinterface.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("do not disable interface")
             return "do not disable interface"
 
     def enableinterface(self, nameinterface):
-        enableinterface = subprocess.run(['bash', './sudo_runfile', 'net_enablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        enableinterface = subprocess.Popen(['./sudo_runfile', 'net_enablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodeenableinterface = enableinterface.returncode
+        stdout, stder = enableinterface.communicate()
+
+        exitCodeenableinterface = enableinterface.wait()
 
         if exitCodeenableinterface == 0:
             ManageLogging.LoggingManager().set_report("enabled interface :" + nameinterface)
             return "enabled netnetwork"
         elif exitCodeenableinterface == 2:
-            ManageLogging.LoggingManager().set_report(enableinterface.stdout.decode('utf-8'))
-            return enableinterface.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("do not enable interface")
             return "do not enable interface"
 
     def checktypeip(self, nameinterface):
-        checktypeinterface = subprocess.run(['bash', './runfile', 'net_checkTypeIp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        checktypeinterface = subprocess.Popen(['./runfile', 'net_checkTypeIp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodechecktypeinterface = checktypeinterface.returncode
+        stdout, stder = checktypeinterface.communicate()
+
+        exitCodechecktypeinterface = checktypeinterface.wait()
 
         if exitCodechecktypeinterface == 0:
-            ManageLogging.LoggingManager().set_report(checktypeinterface.stdout.decode('utf-8'))
-            return checktypeinterface.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodechecktypeinterface == 2:
-            ManageLogging.LoggingManager().set_report(checktypeinterface.stdout.decode('utf-8'))
-            return checktypeinterface.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("can not checked interface")
             return "can not checked interface"
 
     def changetodhcpnetwork(self, nameinterface):
-        changetodhcp = subprocess.run(['bash', './runfile', 'net_changestatic_dhcp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        changetodhcp = subprocess.Popen(['./runfile', 'net_changestatic_dhcp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodechangetodhcp = changetodhcp.returncode
+        stdout, stder = changetodhcp.communicate()
+
+        exitCodechangetodhcp = changetodhcp.wait()
 
         if exitCodechangetodhcp == 0:
             ManageLogging.LoggingManager().set_report("changed to dhcp interface : " + nameinterface)
             return "changed to dhcp"
         elif exitCodechangetodhcp == 2:
-            ManageLogging.LoggingManager().set_report(changetodhcp.stdout.decode('utf-8'))
-            return changetodhcp.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("can not change to dhcp")
             return "can not change to dhcp"
     def checkstateinterface(self, nameinterface):
-        checkstate = subprocess.run(['bash', './runfile', 'net_checkstat', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        checkstate = subprocess.Popen(['./runfile', 'net_checkstat', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodecheckstate = checkstate.returncode
+        stdout, stder = checkstate.communicate()
+
+        exitCodecheckstate = checkstate.wait()
 
         if exitCodecheckstate == 0:
-            ManageLogging.LoggingManager().set_report(checkstate.stdout.decode('utf-8'))
-            return checkstate.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodecheckstate == 2:
-            ManageLogging.LoggingManager().set_report(checkstate.stdout.decode('utf-8'))
-            return checkstate.stdout
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("can not checking state")
             return "can not checking state"
 
     def getlistinterface(self, nameinterface):
-        getlist = subprocess.run(['bash', './runfile', 'net_getlistinterface', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        getlist = subprocess.Popen(['./runfile', 'net_getlistinterface', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        exitCodegetlist = getlist.returncode
+        stdout, stder = getlist.communicate()
+
+        exitCodegetlist = getlist.wait()
 
         if exitCodegetlist == 0:
-            ManageLogging.LoggingManager().set_report(getlist.stdout.decode('utf-8'))
-            return getlist.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         elif exitCodegetlist == 2:
-            ManageLogging.LoggingManager().set_report(getlist.stdout.decode('utf-8'))
-            return getlist.stdout.decode('utf-8')
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
         else:
             ManageLogging.LoggingManager().set_report("can not get list")
             return "can not get list"
@@ -584,6 +610,6 @@ api.add_route('/v1/net', APINetWork())
 if __name__ == "__main__":
     from wsgiref import simple_server
     httpd = simple_server.make_server('0.0.0.0', 5000, api)
-    ManageLogging.LoggingManager().set_report("start API server 10.42.0.213:5000")
+    ManageLogging.LoggingManager().set_report("start API server 0.0.0.0:5000")
     httpd.serve_forever()
 
