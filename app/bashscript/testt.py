@@ -1,7 +1,7 @@
 import subprocess
 
 # Define the command to execute the Bash script with arguments
-command = ['bash', 'sudo_runfile', 'memory_info']
+command = ['bash', 'smssudo_runfile', 'smsmemory_info']
 
 # Execute the command and capture the output and error streams
 result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

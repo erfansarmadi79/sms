@@ -75,7 +75,7 @@ class SystemInfo:
 
     def memoryinfo(self):
 
-        meminfo = subprocess.Popen(['./sudo_runfile', 'memory_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        meminfo = subprocess.Popen(['./smssudo_runfile', 'smsmemory_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = meminfo.communicate()
 
         exitCodeMemory = meminfo.wait()
@@ -88,7 +88,7 @@ class SystemInfo:
             return "\"memory\":"+"\"!!!cannot get memory information\"!!!"
 
     def swapmemory(self):
-        swpinfo = subprocess.Popen(['./runfile', 'memory_swapinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        swpinfo = subprocess.Popen(['./smsrunfile', 'smsmemory_swapinfo'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = swpinfo.communicate()
 
@@ -102,7 +102,7 @@ class SystemInfo:
             return "\"swap\":" + "\"!!!cannot get swap information\"!!!"
 
     def graphicinfo(self):
-        grphinfo = subprocess.Popen(['./runfile', 'graphic_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        grphinfo = subprocess.Popen(['./smsrunfile', 'smsgraphic_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = grphinfo.communicate()
 
@@ -117,7 +117,7 @@ class SystemInfo:
 
     def cpuInfo(self):
         cpuinfo = subprocess.Popen(
-            ['./runfile', 'cpu_info.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ['./smsrunfile', 'smscpu_info.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = cpuinfo.communicate()
         exitCodeCpu = cpuinfo.wait()
 
@@ -130,7 +130,7 @@ class SystemInfo:
 
     def cpucoreInfo(self):
         cpucoreinfo = subprocess.Popen(
-            ['./runfile', 'cpu_usedcore'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ['./smsrunfile', 'smscpu_usedcore'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = cpucoreinfo.communicate()
         exitCodeCpuCore = cpucoreinfo.wait()
 
@@ -143,7 +143,7 @@ class SystemInfo:
 
     def cpu_temp(self):
         cputemp = subprocess.Popen(
-            ['./runfile', 'cpu_temp'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ['./smsrunfile', 'smscpu_temp'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = cputemp.communicate()
         exitCodeCpuCore = cputemp.wait()
 
@@ -155,7 +155,7 @@ class SystemInfo:
             return "\"CpuTemp\":" + "\"!!!cannot get CpuTemp information\"!!!"
 
     def hardinfo(self):
-        hardinfo = subprocess.Popen(['./runfile', 'hard_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        hardinfo = subprocess.Popen(['./smsrunfile', 'smshard_info'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = hardinfo.communicate()
 
@@ -172,8 +172,8 @@ class NetWorkViwer:
 
 
     def __int__(self):
-        self.Runfile = "bashscript/runfile"
-        self.sudoRunfile = "bashscript/sudo_runfile"
+        self.Runfile = "bashscript/smsrunfile"
+        self.sudoRunfile = "bashscript/smssudo_runfile"
 
     def getallinfointerface(self):
         json_str = ""
@@ -199,7 +199,7 @@ class NetWorkViwer:
     def getIp(self, InterfaceName):
 
 
-        ipNet = subprocess.Popen(['./runfile', 'net_getip', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ipNet = subprocess.Popen(['./smsrunfile', 'smsnet_getip', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = ipNet.communicate()
 
@@ -216,7 +216,7 @@ class NetWorkViwer:
             return "{"+"\"error\":"+"\"!!!cannot get ip information!!!\""+"}"
 
     def getDefaultgetway(self, InterfaceName):
-        defaltGetway = subprocess.Popen(['./runfile', 'net_getDefaultgetway', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        defaltGetway = subprocess.Popen(['./smsrunfile', 'smsnet_getDefaultgetway', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = defaltGetway.communicate()
 
@@ -234,7 +234,7 @@ class NetWorkViwer:
 
 
     def getNetmask(self, InterfaceName):
-        netMask = subprocess.Popen(['bash', './runfile', 'net_getNetmask', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        netMask = subprocess.Popen(['bash', './smsrunfile', 'smsnet_getNetmask', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = netMask.communicate()
 
@@ -253,7 +253,7 @@ class NetWorkViwer:
             return "{" + "\"error\":" + "\"!!!cannot get NetMask information!!!\"" + "}"
 
     def getDns(self, InterfaceName):
-        Dns = subprocess.run(['bash', './runfile', 'net_getDNS', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        Dns = subprocess.run(['bash', './smsrunfile', 'smsnet_getDNS', InterfaceName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         exitCodeDns = Dns.returncode
 
@@ -276,7 +276,7 @@ class NetWorkManager:
         self.netViewer = NetWorkViwer()
 
     def change_config(self, nameinterface, lip, lnetmask, gatway, ldns):
-        changeConfig = subprocess.Popen(['./sudo_runfile', 'net_ip_cahnge', "\"" + nameinterface + "\"", "\"" + lip + "\"", "\"" + lnetmask + "\"", "\"" + gatway + "\"", "\"" + ldns + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        changeConfig = subprocess.Popen(['./smssudo_runfile', 'smsnet_ip_cahnge', "\"" + nameinterface + "\"", "\"" + lip + "\"", "\"" + lnetmask + "\"", "\"" + gatway + "\"", "\"" + ldns + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = changeConfig.communicate()
 
@@ -305,7 +305,7 @@ class NetWorkManager:
             return "do not set config"
 
     def addNetWork(self, nameinterface):
-        addnetwork = subprocess.Popen(['./sudo_runfile', 'net_addnetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        addnetwork = subprocess.Popen(['./smssudo_runfile', 'smsnet_addnetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = addnetwork.communicate()
 
@@ -322,7 +322,7 @@ class NetWorkManager:
             return "do not add network"
 
     def removeNetWork(self, nameinterface):
-        removenetwork = subprocess.Popen(['./sudo_runfile', 'net_removeNetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        removenetwork = subprocess.Popen(['./smssudo_runfile', 'smsnet_removeNetwork', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stder = removenetwork.communicate()
         exitCoderemovenetwork = removenetwork.wait()
 
@@ -337,7 +337,7 @@ class NetWorkManager:
             return "do not remove network"
 
     def disableinterface(self, nameinterface):
-        disableinterface = subprocess.Popen(['./sudo_runfile', 'net_disablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        disableinterface = subprocess.Popen(['./smssudo_runfile', 'smsnet_disablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = disableinterface.communicate()
 
@@ -354,7 +354,7 @@ class NetWorkManager:
             return "do not disable interface"
 
     def enableinterface(self, nameinterface):
-        enableinterface = subprocess.Popen(['./sudo_runfile', 'net_enablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        enableinterface = subprocess.Popen(['./smssudo_runfile', 'smsnet_enablenet', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = enableinterface.communicate()
 
@@ -371,7 +371,7 @@ class NetWorkManager:
             return "do not enable interface"
 
     def checktypeip(self, nameinterface):
-        checktypeinterface = subprocess.Popen(['./runfile', 'net_checkTypeIp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        checktypeinterface = subprocess.Popen(['./smsrunfile', 'smsnet_checkTypeIp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = checktypeinterface.communicate()
 
@@ -388,7 +388,7 @@ class NetWorkManager:
             return "can not checked interface"
 
     def changetodhcpnetwork(self, nameinterface):
-        changetodhcp = subprocess.Popen(['./runfile', 'net_changestatic_dhcp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        changetodhcp = subprocess.Popen(['./smsrunfile', 'smsnet_changestatic_dhcp', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = changetodhcp.communicate()
 
@@ -404,7 +404,7 @@ class NetWorkManager:
             ManageLogging.LoggingManager().set_report("can not change to dhcp")
             return "can not change to dhcp"
     def checkstateinterface(self, nameinterface):
-        checkstate = subprocess.Popen(['./runfile', 'net_checkstat', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        checkstate = subprocess.Popen(['./smsrunfile', 'smsnet_checkstat', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = checkstate.communicate()
 
@@ -421,7 +421,7 @@ class NetWorkManager:
             return "can not checking state"
 
     def getlistinterface(self, nameinterface):
-        getlist = subprocess.Popen(['./runfile', 'net_getlistinterface', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        getlist = subprocess.Popen(['./smsrunfile', 'smsnet_getlistinterface', "\"" + nameinterface + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stder = getlist.communicate()
 
@@ -455,36 +455,40 @@ class APINetWork:
                 resp.body = self.netviewer.getIp(req.params['namenet'])
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
         elif str(req.params['conf']).lower() == "state":
             if 'namenet' in req.params:
                 print("")
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
-                #resp.body = self.netviewer.getState(req.params['namenet'])
+                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
         elif str(req.params['conf']).lower() == "defaultgatway":
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getDefaultgetway(req.params['namenet']).replace("\n", "")
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
         elif str(req.params['conf']).lower() == "netmask":
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getNetmask(req.params['namenet'])
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
         elif str(req.params['conf']).lower() == "dns":
             if 'namenet' in req.params:
                 resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
-            # resp.body = self.netviewer.getDns().replace("\n", ",")
+                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
         else:
             resp.status = falcon.HTTP_400
-            ManageLogging.LoggingManager().set_report("Error 404 : not params typeconf")
+            ManageLogging.LoggingManager().set_report("Error 400 : not params typeconf")
+            raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
 
     @falcon.before(Authorize())
     def on_post(self, req, resp):
@@ -512,56 +516,68 @@ class APINetWork:
                                                                                       req.params['gatway'],
                                                                                       req.params['listdns'])
                                         else:
-                                            raise falcon.HTTPNotImplemented('Not Permition',
-                                                                            'You haven\'t Permition')
+                                            resp.status = falcon.HTTP_400
+                                            ManageLogging.LoggingManager().set_report("Error 400 : you are not permition")
+                                            raise falcon.HTTPNotImplemented('You haven\'t Permition')
                                     else:
-                                        raise falcon.HTTPNotImplemented('Not Permition',
-                                                                        'You haven\'t Permition')
+                                        resp.status = falcon.HTTP_400
+                                        ManageLogging.LoggingManager().set_report("Error 400 : you are not permition")
+                                        raise falcon.HTTPNotImplemented('You haven\'t Permition')
                                 else:
                                     resp.status = falcon.HTTP_400
-                                    ManageLogging.LoggingManager().set_report("Error 404 : not params listdns")
+                                    ManageLogging.LoggingManager().set_report("Error 400 : listdns parameter is wrong")
+                                    raise falcon.HTTPUnauthorized('listdns parameter is wrong')
                             else:
                                 resp.status = falcon.HTTP_400
-                                ManageLogging.LoggingManager().set_report("Error 404 : not params gatway")
+                                ManageLogging.LoggingManager().set_report("Error 400 : gatway parameter is wrong")
+                                raise falcon.HTTPUnauthorized('gatway parameter is wrong')
                         else:
                             resp.status = falcon.HTTP_400
-                            ManageLogging.LoggingManager().set_report("Error 404 : not params listnetmask")
+                            ManageLogging.LoggingManager().set_report("Error 400 : listnetmask parameter is wrong")
+                            raise falcon.HTTPUnauthorized('listnetmask parameter is wrong')
                     else:
                         resp.status = falcon.HTTP_400
-                        ManageLogging.LoggingManager().set_report("Error 404 : not params listip")
+                        ManageLogging.LoggingManager().set_report("Error 400 : listip parameter is wrong")
+                        raise falcon.HTTPUnauthorized('listip parameter is wrong')
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "addnet":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.addNetWork(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "removenet":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.removeNetWork(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "disablenet":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.disableinterface(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "enablenet":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.enableinterface(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "checkstate":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.checkstateinterface(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "checktypeip":
                 if 'namenet' in req.params:
                     getmes = self.netmanager.checktypeip(req.params['namenet'])
@@ -569,25 +585,29 @@ class APINetWork:
                     ManageLogging.LoggingManager().set_report(str(getmes))
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "changetodhcp":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.changetodhcpnetwork(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
             elif str(req.params['conf']).lower() == "listintr":
                 if 'namenet' in req.params:
                     resp.body = self.netmanager.getlistinterface(req.params['namenet'])
                 else:
                     resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 404 : not params namenet")
+                    ManageLogging.LoggingManager().set_report("Error 400 : typeconf parameter is wrong")
+                    raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 404 : not params typeconf")
+                ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
 
         else:
-            raise falcon.HTTPUnauthorized('dont Allow', 'You are not allowed to try later')
+            raise falcon.HTTPUnauthorized('You are not allowed to try later')
 
 class APISystemInfo:
     def __init__(self):
@@ -596,8 +616,8 @@ class APISystemInfo:
     @falcon.before(Authorize())
     def on_get(self, req, resp):
         if req.params == {}:
-             resp.body = str(self.sys.my_systeminfo())
-        ManageLogging.LoggingManager().set_report(str(self.sys.my_systeminfo()))
+            resp.body = str(self.sys.my_systeminfo())
+            ManageLogging.LoggingManager().set_report(str(self.sys.my_systeminfo()))
 
 
 api = falcon.API()

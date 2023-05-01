@@ -137,7 +137,7 @@ class SystemInfo:
 
     def memoryinfo(self):
         meminfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/memory/memory_info.sh']).decode(
+            ['bash', '/home/admin/scout-server/app/bashscript/memory/smsmemory_info.sh']).decode(
             'utf-8')
         return meminfo
 
@@ -148,12 +148,12 @@ class SystemInfo:
 
     def graphicinfo(self):
         grphinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/graphic/graphic_info.sh']).decode('utf-8')
+            ['bash', '/home/admin/scout-server/app/bashscript/graphic/smsgraphic_info.sh']).decode('utf-8')
         return grphinfo
 
     def cpucoreinfo(self):
         cpuinfo = subprocess.check_output(
-            ['bash', '/home/admin/scout-server/app/bashscript/cpu/cpu_info.sh']).decode('utf-8')
+            ['bash', '/home/admin/scout-server/app/bashscript/cpu/smscpu_info.sh']).decode('utf-8')
         return cpuinfo
 
     def cpuinfo(self):
