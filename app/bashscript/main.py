@@ -500,7 +500,7 @@ class APINetWork:
             auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
             self.username = auth[0]
 
-        if self.conf.checkAllow():
+        if self.conf.permition_changeallow():
 
             if str(req.params['conf']).lower() == "changeconfig":
                 if 'namenet' in req.params:
@@ -628,8 +628,17 @@ api.add_route('/v1/net', APINetWork())
 
 
 if __name__ == "__main__":
+
+    conf = ChangeSetting()
+
     from wsgiref import simple_server
-    httpd = simple_server.make_server('0.0.0.0', 5000, api)
-    ManageLogging.LoggingManager().set_report("start API server 0.0.0.0:5000")
-    httpd.serve_forever()
+
+    if conf.gettypeserver():
+        httpd = simple_server.make_server('0.0.0.0', 5000, api)
+        ManageLogging.LoggingManager().set_report("start API server 0.0.0.0:5000")
+        httpd.serve_forever()
+    else:
+        httpd = simple_server.make_server('127.0.0.1', 5000, api)
+        ManageLogging.LoggingManager().set_report("start API server 0.0.0.0:5000")
+        httpd.serve_forever()
 
