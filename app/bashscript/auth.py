@@ -1,5 +1,6 @@
 import falcon
 import base64
+import ipaddress
 
 import database.sqllite_manager as sql_data
 
@@ -24,20 +25,23 @@ class Authorize(object):
 
     def __call__(self, req, resp, resource, params):
 
-        ALLOWED_IPS = ['127.0.0.1', '192.168.0.1', '192.168.111.2', '192.168.111.1']
         print('before trigger - class: Authorize')
 
         client_ip = req.remote_addr
 
-        auth_exp = req.auth.split(' ') if not None else (None, None, )
+        if req.auth is not None:
 
-        if auth_exp[0].lower() == 'basic':
-            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
-            username = auth[0]
-            password = auth[1]
-            self.auth_basic(username, password, client_ip)
+            auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+            if auth_exp[0].lower() == 'basic':
+                auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+                username = auth[0]
+                password = auth[1]
+                self.auth_basic(username, password, client_ip)
+            else:
+                raise falcon.HTTPNotImplemented('Not Implemented', 'You don\'t use the right auth method')
         else:
-            raise falcon.HTTPNotImplemented('Not Implemented', 'You don\'t use the right auth method')
+            raise falcon.HTTPNotImplemented('Enter Username and Password')
 
 # class ObjResource:
 #     @falcon.before(Authorize())

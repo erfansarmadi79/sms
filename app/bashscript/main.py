@@ -616,8 +616,9 @@ class APISystemInfo:
     @falcon.before(Authorize())
     def on_get(self, req, resp):
         if req.params == {}:
-            resp.body = str(self.sys.my_systeminfo())
-            ManageLogging.LoggingManager().set_report(str(self.sys.my_systeminfo()))
+            res = self.sys.my_systeminfo()
+            resp.body = str(res)
+            ManageLogging.LoggingManager().set_report(str(res))
 
 
 api = falcon.API()
@@ -639,6 +640,6 @@ if __name__ == "__main__":
         httpd.serve_forever()
     else:
         httpd = simple_server.make_server('127.0.0.1', 5000, api)
-        ManageLogging.LoggingManager().set_report("start API server 0.0.0.0:5000")
+        ManageLogging.LoggingManager().set_report("start API server 127.0.0.1:5000")
         httpd.serve_forever()
 

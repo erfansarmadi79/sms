@@ -1,10 +1,10 @@
-import ipaddress
 import sqlite3
+import ipaddress
 
 
 class DatabaseSql:
     def __init__(self):
-        self.con = sqlite3.connect('userdatabase.db')
+        self.con = sqlite3.connect('/home/admin/1402.02.11/sms/app/bashscript/database/userdatabase.db')
 
         self.c = self.con.cursor()
 
@@ -74,36 +74,35 @@ class DatabaseSql:
         else:
             return False
 
-    def validationIpUser(self, username, ip):
+    def validationIpUser(self, username, client_ip):
 
+        global rows
         try:
             self.c.execute("SELECT iplimited FROM users WHERE username = \"" + username + "\"")
             rows = self.c.fetchone()
 
-            if rows[0] != None:
-                rows = str(rows).replace("(", "").replace(")", "").replace("\'", "")
-        except:
-            return 2
 
-        if rows[0] != None:
 
-            rows.pop(len(rows) - 1)
-            ip_list = [row for row in rows]
+        except ValueError as e:
+            print(e)
 
-            client_ip = ipaddress.ip_address(ip)
-            allowed_network = ipaddress.ip_network(rows[0])
+        if rows[0] is not None:
 
-            if client_ip in allowed_network:
-                return True
-            else:
-                return False
-        else:
-            return True
+            list_ip = str(rows).replace("(", "").replace("\'", "").replace(")", "").split(",")
 
-            # if ip in ip_list:
-            #     return True
-            # else:
-            #     return False
+            list_ip.pop(len(list_ip) - 1)
+
+            _allowcheking = False
+
+            for ip in list_ip:
+
+                if _allowcheking == False:
+                    network = ipaddress.IPv4Network(ipaddress.ip_interface(ip).network)
+                    if ipaddress.ip_address(client_ip) in network:
+                        _allowcheking = True
+
+            return _allowcheking
+        return True
 
     def getPermition(self, username):
         self.c.execute(
@@ -116,12 +115,13 @@ class DatabaseSql:
         elif result == "user":
             return False
 
-
-db = DatabaseSql()
-
-#db.getData()
+# db = DatabaseSql()
 #
-#db.createtable()
+# db.checkUsername("erfan01")
+
+# db.getData()
 #
-db.validationIpUser("erfan159", "10.42.0.211")
-# db.Insert("erfan", "erfan159", "1234", "user", "10.42.0.182,")
+# db.createtable()
+#
+# db.validationIpUser("erfan01", "10.42.0.182")
+# db.Insert("erfan", "erfan01", "1234", "user", "10.42.0.182/24,192.168.2.3/16")
