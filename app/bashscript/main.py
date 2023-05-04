@@ -15,6 +15,9 @@ import config.config
 
 import database.sqllite_manager as db
 
+from app.models.Permition import Permition
+
+from app.bashscript.database.sqllite_manager import DatabaseSql
 # from app.middleware import AuthHandler, JSONTranslator, DatabaseSessionManager
 # from app.database import db_session, init_session
 
@@ -445,14 +448,26 @@ class APINetWork:
         self.netviewer = NetWorkViwer()
         self.netmanager = NetWorkManager()
         self.conf = ChangeSetting()
+        self.db_sql = DatabaseSql()
 
     @falcon.before(Authorize())
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
 
+        auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+        if auth_exp[0].lower() == 'basic':
+            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+            self.username = auth[0]
+
+        self.permition = Permition(self.db_sql._getPermitionUsers(self.username))
+
         if str(req.params['conf']).lower() == "ip":
             if 'namenet' in req.params:
-                resp.body = self.netviewer.getIp(req.params['namenet'])
+                if self.permition.netread:
+                    resp.body = self.netviewer.getIp(req.params['namenet'])
+                else:
+
             else:
                 resp.status = falcon.HTTP_400
                 ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
@@ -514,7 +529,7 @@ class APINetWork:
                                                                                       req.params['listip'],
                                                                                       req.params['listnetmask'],
                                                                                       req.params['gatway'],
-                                                                                      req.params['listdns'])
+                                                                                      req.params['list                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             dns'])
                                         else:
                                             resp.status = falcon.HTTP_400
                                             ManageLogging.LoggingManager().set_report("Error 400 : you are not permition")

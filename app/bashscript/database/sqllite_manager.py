@@ -1,6 +1,8 @@
 import sqlite3
 import ipaddress
 
+from app.models.Permition import Permition
+
 
 class DatabaseSql:
     def __init__(self):
@@ -8,23 +10,12 @@ class DatabaseSql:
 
         self.c = self.con.cursor()
 
-    def createUserTable(self):
-
-        self.c.execute("""CREATE TABLE users (
-                    id INTEGER,
-                    fullname text,
-                    username text,
-                    passwd text,
-                    type text,
-                    iplimited text
-                    )""")
-
-    def Insert(self, fullname, username, passwd, type, ips):
+    def InsertUsers(self, fullname, username, passwd, namepermition, ips):
 
         if self.checkUsername(username):
             try:
                 self.c.execute(
-                    "INSERT INTO users (fullname ,username, passwd, type, iplimited) VALUES (\"" + fullname + "\",\"" + username + "\",\"" + passwd + "\", \"" + type + "\",\"" + ips + "\")")
+                    "INSERT INTO users (fullname ,username, passwd, type, iplimited) VALUES (\"" + fullname + "\",\"" + username + "\",\"" + passwd + "\", \"" + namepermition + "\",\"" + ips + "\")")
                 self.con.commit()
                 return "added user"
             except:
@@ -32,7 +23,13 @@ class DatabaseSql:
         else:
             return "user existed"
 
-    def Delete(self, username):
+    def UpdateUsers(self, username, fullname, passwd, type, ips):
+
+        self.c.execute(
+            "UPDATE users SET name = \'" + fullname + "\', passwd = \'" + passwd + "\', type = \'" + type + "\', iplimited = \'" + ips + "\' WHERE username = \"" + username + "\"")
+        return self.con.commit()
+
+    def DeleteUsers(self, username):
 
         if self.checkUsername(username) == False:
             try:
@@ -44,18 +41,49 @@ class DatabaseSql:
         else:
             return "user existed"
 
-    def Update(self, username, fullname, passwd, type, ips):
+    def InsertPermition(self, namepermition, netread, netwrite, systeminfo):
+
+            try:
+                # self.c.execute(
+                #     #"INSERT INTO userpermition (type ,netread, netwrite, systemInfo) VALUES (\"" + namepermition + "\",\"" + username + "\",\"" + passwd + "\", \"" + type + "\",\"" + ips + "\")")
+                #     "INSERT INTO userpermition (type ,netread, netwrite, systemInfo) VALUES (" + namepermition + "," + netread + "," + netwrite + ", " + systeminfo + ")")
+
+                query = "INSERT INTO userpermition (type ,netread, netwrite, systemInfo) VALUES (?, ?, ?, ?)"
+                self.c.execute(query, (namepermition, netread, netwrite, systeminfo))
+
+                self.con.commit()
+                return "added permition"
+            except:
+                return "don't permition"
+
+    def DeletePermition(self, namepermition):
+
+            try:
+                self.c.execute("DELETE FROM userpermition WHERE type = \"" + namepermition + "\"")
+                return self.con.commit()
+            except:
+                return "cannot remove "
+
+    def UpdatePermition(self, namepermition, netread, netwrite, systeminfo):
 
         self.c.execute(
-            "UPDATE users SET name = \'" + fullname + "\', passwd = \'" + passwd + "\', type = \'" + type + "\', iplimited = \'" + ips + "\' WHERE username = \"" + username + "\"")
+            "UPDATE users SET type = netread = " + netread + ", netwrite = " + netwrite + ", systemInfo = " + systeminfo + "\' WHERE type = \"" + namepermition + "\"")
         return self.con.commit()
 
-    def getData(self):
+    def getAllDataUsers(self):
         try:
             self.c.execute("SELECT * FROM users")
             return self.c.fetchall()
         except:
             return "cannot getdata"
+
+    def getAllDataPermition(self):
+        try:
+            self.c.execute("SELECT * FROM userpermition")
+            return self.c.fetchall()
+        except:
+            return "cannot getdata"
+
 
     def checkUsername(self, username):
         self.c.execute("SELECT * FROM users WHERE username = \"" + username + "\"")
@@ -76,7 +104,6 @@ class DatabaseSql:
 
     def validationIpUser(self, username, client_ip):
 
-        global rows
         try:
             self.c.execute("SELECT iplimited FROM users WHERE username = \"" + username + "\"")
             rows = self.c.fetchone()
@@ -104,19 +131,28 @@ class DatabaseSql:
             return _allowcheking
         return True
 
-    def getPermition(self, username):
-        self.c.execute(
-            "SELECT type FROM users WHERE username = \"" + username + "\"")
+    def _getPermitionUsers(self, username):
+        self.c.execute("SELECT type FROM users WHERE username = \"" + username + "\"")
 
-        result = self.c.fetchone()[0]
+        namepermition = self.c.fetchone()[0]
 
-        if result == "admin":
-            return True
-        elif result == "user":
-            return False
+        self.c.execute("SELECT * FROM userpermition WHERE type = \"" + namepermition + "\"")
+
+        result = self.c.fetchone()
+
+        permition = Permition(result[0], result[1], result[2], result[3], result[4])
+
+        return permition
+
+
+
 
 # db = DatabaseSql()
 #
+# db.getPermition("erfan01", "netread")
+
+#db.InsertPermition("user", True, False, True)
+
 # db.checkUsername("erfan01")
 
 # db.getData()
