@@ -6,7 +6,7 @@ from app.models.Permition import Permition
 
 class DatabaseSql:
     def __init__(self):
-        self.con = sqlite3.connect('/home/admin/1402.02.11/sms/app/bashscript/database/userdatabase.db')
+        self.con = sqlite3.connect('/home/erfan/Desktop/sms/app/bashscript/database/userdatabase.db')
 
         self.c = self.con.cursor()
 

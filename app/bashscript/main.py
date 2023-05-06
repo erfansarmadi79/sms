@@ -3,6 +3,14 @@ import base64
 
 import falcon
 
+import time
+
+from functools import wraps
+
+import ipaddress
+
+from cerberus import Validator
+
 from app import log
 import subprocess
 
@@ -45,6 +53,9 @@ LOG = log.get_logger()
 # application = App(middleware=middleware)
 #
 #
+
+
+
 
 class SystemInfo:
 
@@ -441,6 +452,54 @@ class NetWorkManager:
             return "can not get list"
 
 
+class check:
+
+
+    def isstring(self, text):
+        # Define the schema for the string
+        schema = {'my_string': {'type': 'string'}}
+
+        # Create a validator object and validate the string
+        v = Validator(schema)
+        if v.validate({'my_string': text}):
+            return True
+        else:
+            return False
+    def ipandNetmask(self, ips):
+        lips = ips.split()
+
+        # Define the Cerberus schema for the IP addresses
+        schema = {
+            'ip_address': {
+                'type': 'string',
+                'regex': '^(\d{1,3}\.){3}\d{1,3}(/\d{1,2})?$'
+                # validate that the string is a valid IP address or subnet
+            }
+        }
+
+        # Define a list of IP addresses to validate
+        ip_list = ['10.42.0.210', '10.42.0.210/24', 'invalid']
+
+        # Create a Cerberus validator object and validate each IP address against the schema
+        v = Validator(schema)
+        for ip in lips:
+            doc = {'ip_address': ip}
+            if v.validate(doc):
+                # Extract the IP address or subnet from the validated dictionary
+                ip_address = doc['ip_address']
+                try:
+                    # Try to create an IPv4Network or IPv6Network object from the IP address
+                    ip_object = ipaddress.ip_interface(ip_address).network
+                    if ip_object.num_addresses == 1:
+                        return True
+                    else:
+                        return True
+                except ValueError:
+                    return False
+            else:
+                return False
+
+
 
 class APINetWork:
 
@@ -449,8 +508,46 @@ class APINetWork:
         self.netmanager = NetWorkManager()
         self.conf = ChangeSetting()
         self.db_sql = DatabaseSql()
+        self.check = check()
+
+
+    def rate_limited(max_requests=60, window_seconds=60):
+        """
+        A decorator that limits the rate of requests a client can make.
+        """
+        # Keep track of request times and count
+        request_times = []
+        request_count = 0
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                nonlocal request_times, request_count
+
+                # Remove old requests from the list
+                now = time.time()
+                request_times = [t for t in request_times if t > now - window_seconds]
+
+                # Check if the client has exceeded the rate limit
+                if len(request_times) >= max_requests:
+                    raise falcon.HTTPTooManyRequests('Rate limit exceeded')
+
+                # Update the request times and count
+                request_times.append(now)
+                request_count += 1
+
+                # Call the wrapped function
+                result = func(*args, **kwargs)
+
+                return result
+
+            return wrapper
+
+        return decorator
+
 
     @falcon.before(Authorize())
+    @rate_limited(max_requests=60, window_seconds=60)
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -460,52 +557,53 @@ class APINetWork:
             auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
             self.username = auth[0]
 
-        self.permition = Permition(self.db_sql._getPermitionUsers(self.username))
+        _permition = self.db_sql._getPermitionUsers(self.username)
 
-        if str(req.params['conf']).lower() == "ip":
-            if 'namenet' in req.params:
-                if self.permition.netread:
-                    resp.body = self.netviewer.getIp(req.params['namenet'])
+        if _permition.netread:
+            if 'conf' in req.params and self.check.isstring(req.params['conf']):
+                if str(req.params['conf']).lower() == "ip":
+                    if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
+                        resp.body = self.netviewer.getIp(req.params['namenet'])
+
+                    else:
+                        resp.status = falcon.HTTP_400
+                        ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                        raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                elif str(req.params['conf']).lower() == "defaultgatway":
+                    if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
+                        resp.body = self.netviewer.getDefaultgetway(req.params['namenet']).replace("\n", "")
+                    else:
+                        resp.status = falcon.HTTP_400
+                        ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                        raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                elif str(req.params['conf']).lower() == "netmask":
+                    if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
+                        resp.body = self.netviewer.getNetmask(req.params['namenet'])
+                    else:
+                        resp.status = falcon.HTTP_400
+                        ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                        raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                elif str(req.params['conf']).lower() == "dns":
+                    if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
+                        resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
+                    else:
+                        resp.status = falcon.HTTP_400
+                        ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+                        raise falcon.HTTPUnauthorized('namenet parameter is wrong')
                 else:
-
+                    resp.status = falcon.HTTP_400
+                    ManageLogging.LoggingManager().set_report("Error 400 : not params conf")
+                    raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
             else:
                 resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-        elif str(req.params['conf']).lower() == "state":
-            if 'namenet' in req.params:
-                print("")
-            else:
-                resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-        elif str(req.params['conf']).lower() == "defaultgatway":
-            if 'namenet' in req.params:
-                resp.body = self.netviewer.getDefaultgetway(req.params['namenet']).replace("\n", "")
-            else:
-                resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-        elif str(req.params['conf']).lower() == "netmask":
-            if 'namenet' in req.params:
-                resp.body = self.netviewer.getNetmask(req.params['namenet'])
-            else:
-                resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-        elif str(req.params['conf']).lower() == "dns":
-            if 'namenet' in req.params:
-                resp.body = self.netviewer.getDns(req.params['namenet']).replace("\n", ",")
-            else:
-                resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                ManageLogging.LoggingManager().set_report("Error 400 : not params conf")
+                raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
         else:
-            resp.status = falcon.HTTP_400
-            ManageLogging.LoggingManager().set_report("Error 400 : not params typeconf")
-            raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
+            ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+            raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
     @falcon.before(Authorize())
+    @rate_limited(max_requests=60, window_seconds=60)
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -515,125 +613,195 @@ class APINetWork:
             auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
             self.username = auth[0]
 
-        if self.conf.permition_changeallow():
+        _permition = self.db_sql._getPermitionUsers(self.username)
 
-            if str(req.params['conf']).lower() == "changeconfig":
-                if 'namenet' in req.params:
-                    if 'listip' in req.params:
-                        if 'listnetmask' in req.params:
-                            if 'gatway' in req.params:
-                                if 'listdns':
-                                    if config.config().ChangeSetting():
-                                        if db.DatabaseSql().getPermition(self.username):
-                                            resp.body = self.netmanager.change_config(req.params['namenet'],
-                                                                                      req.params['listip'],
-                                                                                      req.params['listnetmask'],
-                                                                                      req.params['gatway'],
-                                                                                      req.params['list                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             dns'])
+        if _permition.netread:
+            if self.conf.permition_changeallow():
+
+                if 'conf' in req.params and self.check.isstring(req.params['conf']):
+                    if str(req.params['conf']).lower() == "changeconfig":
+                        if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
+                            if 'listip' in req.params and self.check.ipandNetmask(req.params['listip']):
+                                if 'listnetmask' in req.params and self.check.ipandNetmask(req.params['listnetmask']):
+                                    if 'gatway' in req.params and self.check.ipandNetmask(req.params['gatway']):
+                                        if 'listdns' in req.params and self.check.ipandNetmask(req.params['listdns']):
+                                            if config.config().ChangeSetting():
+                                                if db.DatabaseSql().getPermition(self.username):
+                                                    resp.body = self.netmanager.change_config(req.params['namenet'],
+                                                                                              req.params['listip'],
+                                                                                              req.params['listnetmask'],
+                                                                                              req.params['gatway'],
+                                                                                              req.params[
+                                                                                                  'list                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             dns'])
+                                                else:
+                                                    resp.status = falcon.HTTP_400
+                                                    ManageLogging.LoggingManager().set_report(
+                                                        "Error 400 : you are not permition")
+                                                    raise falcon.HTTPNotImplemented('You haven\'t Permition')
+                                            else:
+                                                resp.status = falcon.HTTP_400
+                                                ManageLogging.LoggingManager().set_report(
+                                                    "Error 400 : you are not permition")
+                                                raise falcon.HTTPNotImplemented('You haven\'t Permition')
                                         else:
                                             resp.status = falcon.HTTP_400
-                                            ManageLogging.LoggingManager().set_report("Error 400 : you are not permition")
-                                            raise falcon.HTTPNotImplemented('You haven\'t Permition')
+                                            ManageLogging.LoggingManager().set_report(
+                                                "Error 400 : listdns parameter is wrong")
+                                            raise falcon.HTTPUnauthorized('listdns parameter is wrong')
                                     else:
                                         resp.status = falcon.HTTP_400
-                                        ManageLogging.LoggingManager().set_report("Error 400 : you are not permition")
-                                        raise falcon.HTTPNotImplemented('You haven\'t Permition')
+                                        ManageLogging.LoggingManager().set_report(
+                                            "Error 400 : gatway parameter is wrong")
+                                        raise falcon.HTTPUnauthorized('gatway parameter is wrong')
                                 else:
                                     resp.status = falcon.HTTP_400
-                                    ManageLogging.LoggingManager().set_report("Error 400 : listdns parameter is wrong")
-                                    raise falcon.HTTPUnauthorized('listdns parameter is wrong')
+                                    ManageLogging.LoggingManager().set_report(
+                                        "Error 400 : listnetmask parameter is wrong")
+                                    raise falcon.HTTPUnauthorized('listnetmask parameter is wrong')
                             else:
                                 resp.status = falcon.HTTP_400
-                                ManageLogging.LoggingManager().set_report("Error 400 : gatway parameter is wrong")
-                                raise falcon.HTTPUnauthorized('gatway parameter is wrong')
+                                ManageLogging.LoggingManager().set_report("Error 400 : listip parameter is wrong")
+                                raise falcon.HTTPUnauthorized('listip parameter is wrong')
                         else:
                             resp.status = falcon.HTTP_400
-                            ManageLogging.LoggingManager().set_report("Error 400 : listnetmask parameter is wrong")
-                            raise falcon.HTTPUnauthorized('listnetmask parameter is wrong')
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "addnet":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.addNetWork(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "removenet":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.removeNetWork(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "disablenet":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.disableinterface(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "enablenet":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.enableinterface(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "checkstate":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.checkstateinterface(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "checktypeip":
+                        if 'namenet' in req.params:
+                            getmes = self.netmanager.checktypeip(req.params['namenet'])
+                            resp.body = getmes
+                            ManageLogging.LoggingManager().set_report(str(getmes))
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "changetodhcp":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.changetodhcpnetwork(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                            raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    elif str(req.params['conf']).lower() == "listintr":
+                        if 'namenet' in req.params:
+                            resp.body = self.netmanager.getlistinterface(req.params['namenet'])
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : typeconf parameter is wrong")
+                            raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
                     else:
                         resp.status = falcon.HTTP_400
-                        ManageLogging.LoggingManager().set_report("Error 400 : listip parameter is wrong")
-                        raise falcon.HTTPUnauthorized('listip parameter is wrong')
+                        ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
+                        raise falcon.HTTPUnauthorized('namenet parameter is wrong')
                 else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "addnet":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.addNetWork(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "removenet":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.removeNetWork(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "disablenet":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.disableinterface(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "enablenet":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.enableinterface(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "checkstate":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.checkstateinterface(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "checktypeip":
-                if 'namenet' in req.params:
-                    getmes = self.netmanager.checktypeip(req.params['namenet'])
-                    resp.body = getmes
-                    ManageLogging.LoggingManager().set_report(str(getmes))
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "changetodhcp":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.changetodhcpnetwork(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                    raise falcon.HTTPUnauthorized('namenet parameter is wrong')
-            elif str(req.params['conf']).lower() == "listintr":
-                if 'namenet' in req.params:
-                    resp.body = self.netmanager.getlistinterface(req.params['namenet'])
-                else:
-                    resp.status = falcon.HTTP_400
-                    ManageLogging.LoggingManager().set_report("Error 400 : typeconf parameter is wrong")
-                    raise falcon.HTTPUnauthorized('typeconf parameter is wrong')
-            else:
-                resp.status = falcon.HTTP_400
-                ManageLogging.LoggingManager().set_report("Error 400 : namenet parameter is wrong")
-                raise falcon.HTTPUnauthorized('namenet parameter is wrong')
+                    ManageLogging.LoggingManager().set_report("Error 400 : not params conf")
+                    raise falcon.HTTPUnauthorized('not params conf')
 
+            else:
+                raise falcon.HTTPUnauthorized('You are not allowed to try later')
         else:
-            raise falcon.HTTPUnauthorized('You are not allowed to try later')
+            ManageLogging.LoggingManager().set_report("Error 400 : Are you not permitio")
+            raise falcon.HTTPUnauthorized('Are you not permition!!!')
+
 
 class APISystemInfo:
     def __init__(self):
         self.sys = SystemInfo()
+        self.db_sql = DatabaseSql()
+
+    def rate_limited(max_requests=60, window_seconds=60):
+        """
+        A decorator that limits the rate of requests a client can make.
+        """
+        # Keep track of request times and count
+        request_times = []
+        request_count = 0
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                nonlocal request_times, request_count
+
+                # Remove old requests from the list
+                now = time.time()
+                request_times = [t for t in request_times if t > now - window_seconds]
+
+                # Check if the client has exceeded the rate limit
+                if len(request_times) >= max_requests:
+                    raise falcon.HTTPTooManyRequests('Rate limit exceeded')
+
+                # Update the request times and count
+                request_times.append(now)
+                request_count += 1
+
+                # Call the wrapped function
+                result = func(*args, **kwargs)
+
+                return result
+
+            return wrapper
+
+        return decorator
 
     @falcon.before(Authorize())
+    @rate_limited(max_requests=60, window_seconds=60)
     def on_get(self, req, resp):
-        if req.params == {}:
-            res = self.sys.my_systeminfo()
-            resp.body = str(res)
-            ManageLogging.LoggingManager().set_report(str(res))
+
+        auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+        if auth_exp[0].lower() == 'basic':
+            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+            self.username = auth[0]
+
+        _permition = self.db_sql._getPermitionUsers(self.username)
+
+        if _permition.systemInfo:
+            if req.params == {}:
+                res = self.sys.my_systeminfo()
+                resp.body = str(res)
+                ManageLogging.LoggingManager().set_report(str(res))
+            else:
+                ManageLogging.LoggingManager().set_report("Error 400 : not Arguments")
+                raise falcon.HTTPUnauthorized('not Arguments!!!')
+
+        else:
+            ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
+            raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
 
 api = falcon.API()
