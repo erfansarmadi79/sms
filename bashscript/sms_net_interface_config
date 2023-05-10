@@ -1,0 +1,100 @@
+#!/bin/bash
+
+set -e
+
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+  This script is used to add a network interface.
+
+Requirements :
+  This script must be executed with the sudo command.
+
+How to use:
+  sms_net_interface_add  [interface name]
+
+tip :
+  If the interface name does not exist, it displays an appropriate message and returns the exitcode 2."
+  exit 0
+fi
+
+
+function add_interfaec {
+interface=$1
+
+
+if [[ ! "$(ip link show ${interface} 2> /dev/null)" ]]; then
+  echo "Interface do not: ${interface}"
+  exit 2
+else
+
+  ln -s /etc/init.d/net.lo /etc/init.d/net.$interface
+
+  rc-update add net.$interface default
+
+  rc-service net.$interface start
+
+fi
+}
+
+function remove_interface {
+interface=$1
+if [[ ! "$(ip link show ${interface} 2> /dev/null)" ]]; then
+  echo "Interface do not: ${interface}"
+  exit 2
+else
+
+  sudo rc-service net.$interface stop
+
+  sudo rc-update del net.$interface default
+
+  sudo unlink /etc/init.d/net.$interface
+
+fi
+}
+
+function disable_interface {
+
+interface=$1
+
+if [[ ! "$(ip link show ${interface} 2> /dev/null)" ]]; then
+  echo "Interface do not: ${interface}"
+  exit 2
+else
+
+  sudo rc-service net.$interface stop
+  sudo rc-update del net.$interface default
+fi
+}
+
+function enable_interface {
+interface=$1
+
+if [[ ! "$(ip link show ${interface} 2> /dev/null)" ]]; then
+  echo "Interface do not: ${interface}"
+  exit 2
+else
+  
+  sudo rc-service net.$interface start
+  sudo rc-update add net.$interface default
+
+fi
+}
+
+# Get the name of the script and its inputs from command-line arguments
+fun_name=$1
+shift
+script_inputs=$@
+
+# Check if the script exists
+if ["$fun_name" == "add" ]; then
+  add_interfaec $script_inputs
+elif [ "$fun_name" == "remove" ]; then
+  remove_interface $script_inputs
+elif [ "$fun_name" == "disable" ]; then
+  disable_interface $script_inputs
+elif [ "$fun_name" == "enable" ]; then
+  enable_interface $script_inputs
+fi

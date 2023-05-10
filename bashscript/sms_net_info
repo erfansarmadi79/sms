@@ -1,0 +1,101 @@
+#!/bin/bash
+
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+  This script displays the interfaces information"
+  exit 0
+fi
+
+ip_link='ip link show'
+ip_addr='ip addr show'
+
+function get_ip {
+ interface_name=$1
+ $ip_addr $interface_name | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1
+
+}
+
+function get_net_mask() {
+  interface_name=$1
+  ifconfig $interface | awk '/netmask/ { print $4 }'
+}
+
+function get_dns {
+  interface_name=$1
+
+  if [ -f /etc/conf.d/net ]; then
+    grep "dns_servers_${interface_name}" /etc/conf.d/net | cut -d'=' -f2
+  else
+    echo ""
+  fi
+
+}
+function get_type_interface {
+  interface_name=$1
+
+  if [ -f /etc/conf.d/net ]; then
+   if [[ $(cat /etc/conf.d/net | grep -c 'config_"$interface_name"="dhcp"') -eq 1 ]]; then
+    echo "The network is configured with dynamic IP address."
+  else
+    echo "The network is configured with static IP address."
+  fi
+  else
+    echo ""
+  fi
+
+}
+function get_gatway {
+  interface_name=$1
+    ip route | awk "/dev/{if(\$5==\"$interface_name\") print \$3}"
+}
+
+
+function get_info {
+  interface_name=$1
+  status=$2
+  echo "\"$interface\": {"
+  echo "     \"status\" :\"$status\","
+  echo "     \"ip\" :\"$(get_ip $interface_name)\","
+  echo "     \"type\" :\"$(get_type_interface $interface_name)\","
+  echo "     \"net_mask\" :\"$(get_net_mask $interface_name)\","
+  echo "     \"dns\" :\"$(get_dns $interface_name)\","
+  echo "     \"gatway\" :\"$(get_gatway $interface_name)\""
+  echo "},"
+
+}
+
+
+echo "\"network_info\" :{"
+# Get list of network interfaces
+interfaces=$( $ip_link | awk -F': ' '{print $2}' | grep eth*)
+
+res_info=''
+
+# Loop through each interface and check its status
+for interface in $interfaces
+do
+
+    status=$($ip_link $interface | grep -o 'state [A-Z]\+' | awk '{print $2}')
+    if [ $? -eq 0 ]
+    then
+        if [ "$status" == "UP" ]
+        then
+          res_info+=$(get_info $interface $status)
+          up_interfaces="$up_interfaces $interface \n "
+        elif [ "$status" == "DOWN" ]
+        then
+          res_info+=$(get_info $interface $status)
+          down_interfaces="$down_interfaces $interface \n "
+        fi
+    else
+        echo "Error getting status for $interface"
+    fi
+done
+
+echo $res_info | sed 's/.$//'
+echo "}"
+

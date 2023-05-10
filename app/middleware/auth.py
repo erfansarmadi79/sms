@@ -1,22 +1,66 @@
-# -*- coding: utf-8 -*-
+import falcon
+import base64
+import ipaddress
 
-from app import log
-from app.utils.auth import decrypt_token
-from app.errors import UnauthorizedError
+import app.utils.sqllite_manager as sql_data
 
+class Authorize(object):
 
-LOG = log.get_logger()
+    def __init__(self):
 
+        self.sql_db = sql_data.DatabaseSql()
 
-class AuthHandler(object):
+    def auth_basic(self, username, password, client_ip):
 
-    def process_request(self, req, res):
-        LOG.debug("Authorization: %s", req.auth)
-        if req.auth is not None:
-            token = decrypt_token(req.auth)
-            if token is None:
-                raise UnauthorizedError('Invalid auth token: %s' % req.auth)
+        if self.sql_db.check_exist_username(username) != True:
+            if self.sql_db.validation_ip_user(username, client_ip):
+                if self.sql_db.check_user_authentication(username, password):
+                    print('your have access - wellcom')
+                else:
+                    raise falcon.HTTPNotImplemented('Unauthorized', 'Your access is not allowed ')
             else:
-                req.context['auth_user'] = token.decode('utf-8')
+                raise falcon.HTTPUnauthorized('Invalid client IP', 'Please access the API from an allowed IP address')
         else:
-            req.context['auth_user'] = None
+            raise falcon.HTTPNotImplemented('Unauthorized', 'Your access does not exist ')
+
+    def __call__(self, req, resp, resource, params):
+
+        print('before trigger - class: Authorize')
+
+        client_ip = req.remote_addr
+
+        if req.auth is not None:
+
+            auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+            if auth_exp[0].lower() == 'basic':
+                auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+                username = auth[0]
+                password = auth[1]
+                self.auth_basic(username, password, client_ip)
+            else:
+                raise falcon.HTTPNotImplemented('Not Implemented', 'You don\'t use the right auth method')
+        else:
+            raise falcon.HTTPNotImplemented('Enter Username and Password')
+
+# class ObjResource:
+#     @falcon.before(Authorize())
+#     def on_get(self, req, resp):
+#         print('on_get trigger')
+#
+#         output = {
+#             'method':'get'
+#         }
+#
+#         resp.media = output
+#
+# api = falcon.API()
+#
+#
+# api.add_route('/test', ObjResource())
+#
+#
+# if __name__ == "__main__":
+#     from wsgiref import simple_server
+#     httpd = simple_server.make_server('192.168.111.135', 5000, api)
+#     httpd.serve_forever()

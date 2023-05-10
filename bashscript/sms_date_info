@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+  This script displays the status of system date.
+How to use:
+  sms_date_info"
+  exit 0
+fi
+
+
+#echo "\"systemtime\"; {"
+current_date=$(date +"%Y-%m-%d %H:%M:%S")
+echo "\"date and time\" : \"$current_date\""
+#echo "}"

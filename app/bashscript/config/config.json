@@ -1,7 +1,0 @@
-{
-	"config": {
-		"loger": {"path_file": "/var/log/sms/"},
-		"changesetting": {"allowed": "true"},
-		"server" : {"type": "true"}
-	}
-}

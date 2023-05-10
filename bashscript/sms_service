@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -e
+
+function service_enable {
+
+service_name=$1
+
+if test -e "/etc/init.d/$service_name"; then
+  sudo rc-service $service_name start
+else
+  echo "not find service"
+  exit 2
+
+fi
+
+}
+
+function service_disable {
+
+service_name=$1
+
+if test -e "/etc/init.d/$service_name"; then
+  sudo rc-service $service_name stop
+else
+  echo "not find service"
+  exit 2
+
+fi
+
+}
+
+function service_restart {
+
+service_name=$1
+
+if test -e "/etc/init.d/$service_name"; then
+  sudo rc-service $service_name restart
+else
+  echo "not find service"
+  exit 2
+
+fi
+
+}
+
+fun_name=$1
+shift
+script_inputs=$@
+
+# Check if the script exists
+if ["$fun_name" == "enable" ]; then
+  service_enable $script_inputs
+elif [ "$fun_name" == "disable" ]; then
+  service_disable $script_inputs
+elif [ "$fun_name" == "restart" ]; then
+  service_restart $script_inputs
+fi
