@@ -1,0 +1,17 @@
+#!/bin/bash
+
+src_DIR=$1
+
+dis_Dir=$2
+
+if [ -e "/work$src_DIR" ]
+then
+
+  cp -r "$src_DIR" "$dis_Dir"
+
+
+else
+
+  exit 2
+
+fi

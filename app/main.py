@@ -16,6 +16,8 @@ import subprocess
 
 from app.middleware.auth import Authorize
 
+from app.middleware.cheking_moving_file import AllowFileMoving
+
 from app import manage_logging
 from app.utils.config_manager import ChangeSetting
 from app.utils.sqllite_manager import DatabaseSql
@@ -399,7 +401,7 @@ class NetWorkManager:
             return "can not change to dhcp"
 
 
-class Check:
+class Check_validation:
 
     def isstring(self, text):
         # Define the schema for the string
@@ -516,16 +518,26 @@ class Service_Manager:
             LoggingManager().set_report("cannot restart service")
             return "\"service\":" + "\"cannot restart service\"!!!"
 
-
-class APINetWork:
+class FileManager:
 
     def __init__(self):
-        self.netviewer = NetWorkViwer()
-        self.netmanager = NetWorkManager()
-        self.conf = ChangeSetting()
-        self.db_sql = DatabaseSql()
-        self.check = Check()
 
+        self.permition_file = AllowFileMoving()
+
+    def copyfile(self, src, dis):
+
+        flag = self.permition_file.check_permition_path(src, dis)
+
+        if flag == 0:
+
+
+
+
+    def cutfile(self, src, dis):
+
+
+
+class ConectionManager:
     def rate_limited(max_requests=60, window_seconds=60):
         """
         A decorator that limits the rate of requests a client can make.
@@ -560,8 +572,18 @@ class APINetWork:
 
         return decorator
 
+
+class APINetWork:
+
+    def __init__(self):
+        self.netviewer = NetWorkViwer()
+        self.netmanager = NetWorkManager()
+        self.conf = ChangeSetting()
+        self.db_sql = DatabaseSql()
+        self.check = Check_validation()
+
     @falcon.before(Authorize())
-    @rate_limited(max_requests=60, window_seconds=60)
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -590,7 +612,7 @@ class APINetWork:
             raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
     @falcon.before(Authorize())
-    @rate_limited(max_requests=60, window_seconds=60)
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -604,7 +626,6 @@ class APINetWork:
 
         if _permition.netread:
             if self.conf.get_change_setting():
-
                 if 'conf' in req.params and self.check.isstring(req.params['conf']):
                     if str(req.params['conf']).lower() == "changeconfig":
                         if 'namenet' in req.params and self.check.isstring(req.params['namenet']):
@@ -618,8 +639,7 @@ class APINetWork:
                                                                                               req.params['listip'],
                                                                                               req.params['listnetmask'],
                                                                                               req.params['gatway'],
-                                                                                              req.params[
-                                                                                                  'list                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             dns'])
+                                                                                              req.params['list_dns'])
                                                 else:
                                                     resp.status = falcon.HTTP_400
                                                     LoggingManager().set_report(
@@ -726,6 +746,76 @@ class APINetWork:
             raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
 
+
+class APIFileManager:
+
+    def __init__(self):
+        self.conf = ChangeSetting()
+        self.db_sql = DatabaseSql()
+        self.check_validation = Check_validation()
+        self.file_manager = FileManager()
+
+
+    @falcon.before(Authorize())
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
+    def on_get(self, req, resp):
+        pass
+
+    @falcon.before(Authorize())
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
+    def on_post(self, req, resp):
+        resp.status = falcon.HTTP_200
+
+        auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+        if auth_exp[0].lower() == 'basic':
+            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+            self.username = auth[0]
+
+        _permition = self.db_sql.get_permition_users(self.username)
+
+        if _permition.netread:
+            if 'action' in req.params and self.check.isstring(req.params['action']):
+                if str(req.params['action']).lower() == "copy":
+                    if 'src' in req.params and self.check.isstring(req.params['src']):
+                        if 'dis' in req.params and self.check.isstring(req.params['dis']):
+                            if self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 0:
+
+                            elif self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 1:
+                                pass
+                            elif self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 2:
+                                pass
+                            else:
+                                pass
+                        else:
+                            pass
+                    else:
+                        pass
+                elif str(req.params['action']).lower() == "cut":
+                    if 'src' in req.params and self.check.isstring(req.params['src']):
+                        if 'dis' in req.params and self.check.isstring(req.params['dis']):
+                            if self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 0:
+                                pass
+                            elif self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 1:
+                                pass
+                            elif self.path_permition.check_permition_path(req.params['src'], req.params['dis']) == 2:
+                                pass
+                            else:
+                                pass
+                        else:
+                            pass
+                    else:
+                        pass
+                elif str(req.params['action']).lower() == "remove":
+                    pass
+                else:
+                    pass
+            else:
+                pass
+        else:
+            pass
+
+
 class APISystemInfo:
     def __init__(self):
         self.username = None
@@ -733,42 +823,8 @@ class APISystemInfo:
         self.sys = SystemInfo()
         self.db_sql = DatabaseSql()
 
-    def rate_limited(max_requests=60, window_seconds=60):
-        """
-        A decorator that limits the rate of requests a client can make.
-        """
-        # Keep track of request times and count
-        request_times = []
-        request_count = 0
-
-        def decorator(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                nonlocal request_times, request_count
-
-                # Remove old requests from the list
-                now = time.time()
-                request_times = [t for t in request_times if t > now - window_seconds]
-
-                # Check if the client has exceeded the rate limit
-                if len(request_times) >= max_requests:
-                    raise falcon.HTTPTooManyRequests('Rate limit exceeded')
-
-                # Update the request times and count
-                request_times.append(now)
-                request_count += 1
-
-                # Call the wrapped function
-                result = func(*args, **kwargs)
-
-                return result
-
-            return wrapper
-
-        return decorator
-
     @falcon.before(Authorize())
-    @rate_limited(max_requests=60, window_seconds=60)
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
     def on_get(self, req, resp):
 
         auth_exp = req.auth.split(' ') if not None else (None, None,)
@@ -793,7 +849,7 @@ class APISystemInfo:
             raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
     @falcon.before(Authorize())
-    @rate_limited(max_requests=60, window_seconds=60)
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -851,42 +907,8 @@ class APIService:
         self.service = Service_Manager()
         self.db_sql = DatabaseSql()
 
-    def rate_limited(max_requests=60, window_seconds=60):
-        """
-                A decorator that limits the rate of requests a client can make.
-                """
-        # Keep track of request times and count
-        request_times = []
-        request_count = 0
-
-        def decorator(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                nonlocal request_times, request_count
-
-                # Remove old requests from the list
-                now = time.time()
-                request_times = [t for t in request_times if t > now - window_seconds]
-
-                # Check if the client has exceeded the rate limit
-                if len(request_times) >= max_requests:
-                    raise falcon.HTTPTooManyRequests('Rate limit exceeded')
-
-                # Update the request times and count
-                request_times.append(now)
-                request_count += 1
-
-                # Call the wrapped function
-                result = func(*args, **kwargs)
-
-                return result
-
-            return wrapper
-
-        return decorator
-
     @falcon.before(Authorize())
-    @rate_limited(max_requests=60, window_seconds=60)
+    @ConectionManager.rate_limited(max_requests=60, window_seconds=60)
     def on_post(self, req, resp):
         resp.status = falcon.HTTP_200
 
@@ -929,6 +951,7 @@ api = falcon.API()
 api.add_route('/v1/systeminfo', APISystemInfo())
 api.add_route('/v1/net', APINetWork())
 api.add_route('/v1/service', APIService())
+api.add_route('/v1/file_manager', APIFileManager())
 
 if __name__ == "__main__":
 

@@ -19,3 +19,18 @@ class ChangeSetting:
 
     def get_database_path(self):
         return self.json_data['config']['db_path']
+
+    def get_allow_file_copy(self):
+        return self.json_data['config']['allow_file_copy']
+
+    def get_input_file_source(self):
+        return self.json_data['config']['input_files']['sources']
+
+    def get_input_file_distination(self):
+        return self.json_data['config']['input_files']['distination']
+
+    def get_out_file_source(self):
+        return self.json_data['config']['out_files']['sources']
+
+    def get_out_file_distination(self):
+        return self.json_data['config']['out_files']['distination']
