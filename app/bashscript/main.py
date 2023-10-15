@@ -81,6 +81,12 @@ class SystemInfo:
         self.output_str += ",\n"
         self.output_str += self.hardinfo()
         self.output_str = self.output_str[:len(self.output_str) - 1]
+        self.output_str += ",\n"
+        self.output_str += self.getdate()
+        self.output_str = self.output_str[:len(self.output_str) - 1]
+        self.output_str += ",\n"
+        self.output_str += self.getversionos()
+        self.output_str = self.output_str[:len(self.output_str) - 1]
         self.output_str += "\n"
 
         self.output_str += "}"
@@ -181,6 +187,63 @@ class SystemInfo:
         else:
             ManageLogging.LoggingManager().set_report("cannot get HardDisk information")
             return "\"Hard_disk\":" + "\"!!!cannot get HardDisk information\"!!!"
+
+    def getdate(self):
+        date = subprocess.Popen(['./smsrunfile', 'smsgetdate'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout, stderr = date.communicate()
+
+        exitCodeDate = date.wait()
+
+        if exitCodeDate == 0:
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
+        else:
+            ManageLogging.LoggingManager().set_report("cannot get Date information")
+            return "\"systemtime\":" + "\"!!!cannot get date information\"!!!"
+
+    def getversionos(self):
+
+        versionos = subprocess.Popen(['./smsrunfile', 'smsos_version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout, stderr = versionos.communicate()
+
+        exitCodeversion = versionos.wait()
+
+        if exitCodeversion == 0:
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
+        else:
+            ManageLogging.LoggingManager().set_report("cannot get versionos information")
+            return "\"version-os\":" + "\"!!!cannot get versionos information\"!!!"
+
+    def changeMaualDate(self, date, time):
+        changetime = subprocess.Popen(['./smssudo_runfile', 'smschangetime_manual', "\"" + date + "\"", "\"" + time + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout, stder = changetime.communicate()
+
+        exitCodechangetime = changetime.wait()
+
+        if exitCodechangetime == 0:
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
+        else:
+            ManageLogging.LoggingManager().set_report(stder.decode('utf-8'))
+            return "do not set time"
+    def changeAutomaticDate(self, serverip):
+        changetime = subprocess.Popen(['./smssudo_runfile', 'smschangedate_auto', "\"" + serverip + "\""], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout, stder = changetime.communicate()
+
+        exitCodechangetime = changetime.wait()
+
+        if exitCodechangetime == 0:
+            ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
+            return stdout.decode('utf-8')
+        else:
+            ManageLogging.LoggingManager().set_report(stder.decode('utf-8'))
+            return "do not set time"
+
 
 class NetWorkViwer:
 
@@ -297,8 +360,8 @@ class NetWorkManager:
         exitCodechangeConfig = changeConfig.wait()
 
         if exitCodechangeConfig == 0:
-            return "set config"
             ManageLogging.LoggingManager().set_report("change sucess NetWorkinterface ("+nameinterface+") ips : "+lip+"netmasks : "+lnetmask+"gatway : "+gatway+"dnss : "+ldns)
+            return "set config"
         elif exitCodechangeConfig == 2:
             ManageLogging.LoggingManager().set_report(stdout.decode('utf-8'))
             return stdout.decode('utf-8')
@@ -465,6 +528,21 @@ class check:
             return True
         else:
             return False
+
+    def dateandtime(self, date, time):
+        # Define the schema for the string
+        schema = {
+            'date': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2}$', 'date': '%Y-%m-%d'},
+            'time': {'type': 'string', 'regex': r'^\d{2}:\d{2}:\d{2}$', 'time': '%H:%M:%S'}
+        }
+
+        # Create a validator object and validate the string
+        v = Validator(schema)
+        if v.validate({'date': date, 'time': time}):
+            return True
+        else:
+            return False
+
     def ipandNetmask(self, ips):
         lips = ips.split()
 
@@ -802,6 +880,57 @@ class APISystemInfo:
         else:
             ManageLogging.LoggingManager().set_report("Error 400 : not params namenet")
             raise falcon.HTTPUnauthorized('Are you not permition!!!')
+
+    @falcon.before(Authorize())
+    @rate_limited(max_requests=60, window_seconds=60)
+    def on_post(self, req, resp):
+        resp.status = falcon.HTTP_200
+
+        auth_exp = req.auth.split(' ') if not None else (None, None,)
+
+        if auth_exp[0].lower() == 'basic':
+            auth = base64.b64decode(auth_exp[1]).decode('utf-8').split(':')
+            self.username = auth[0]
+
+        _permition = self.db_sql._getPermitionUsers(self.username)
+
+        if _permition.netread:
+            if self.conf.permition_changeallow():
+                if 'conf' in req.params and self.check.isstring(req.params['conf']):
+                    if str(req.params['conf']).lower() == "setdate":
+                        if 'typedate' in req.params and self.check.isstring(req.params['typedate']):
+                            if str(req.params['typedate']).lower() == "auto":
+                                if 'serverip' in req.params and self.check.ipandNetmask(req.params['serverip']):
+                                    self.sys.changeAutomaticDate(req.params['serverip'])
+                                else:
+                                    resp.status = falcon.HTTP_400
+                                    ManageLogging.LoggingManager().set_report("Error 400 : ipserver not valid")
+                                    raise falcon.HTTPUnauthorized('ipserver not valid')
+
+                            elif str(req.params['typedate']).lower() == "manual":
+                                if 'date' in req.params and 'date' in req.params:
+                                    if self.check.dateandtime(req.params['date'], req.params['time']):
+                                        self.sys.changeMaualDate(req.params['date'], req.params['time'])
+                            else:
+                                resp.status = falcon.HTTP_400
+                                ManageLogging.LoggingManager().set_report("Error 400 : date or time not valid")
+                                raise falcon.HTTPUnauthorized('date or time not valid')
+                        else:
+                            resp.status = falcon.HTTP_400
+                            ManageLogging.LoggingManager().set_report("Error 400 : typedate parameter is wrong")
+                            raise falcon.HTTPUnauthorized('typedate parameter is wrong')
+                    else:
+                        resp.status = falcon.HTTP_400
+                        ManageLogging.LoggingManager().set_report("Error 400 : conf parameter is wrong")
+                        raise falcon.HTTPUnauthorized('conf parameter is wrong')
+                else:
+                    ManageLogging.LoggingManager().set_report("Error 400 : not params conf")
+                    raise falcon.HTTPUnauthorized('not params conf')
+            else:
+                raise falcon.HTTPUnauthorized('You are not allowed to try later')
+        else:
+           ManageLogging.LoggingManager().set_report("Error 400 : Are you not permition")
+           raise falcon.HTTPUnauthorized('Are you not permition!!!')
 
 
 api = falcon.API()

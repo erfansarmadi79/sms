@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+set -e
+
+# Show help message if user provides -h or --help option
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "
+Description :
+  This script is for manually setting the date and time.
+How to use:
+  Script name + interface name
+How to use:
+  The name of the script + YYYY/MM/DD HH:MM:SS"
+  exit 0
+fi
+
+> /etc/conf.d/ntp-client
+/etc/init.d/ntp-clint restart
+
+# Combine the date and time arguments into a single string
+new_datetime="$1 $2"
+
+# Set the system date and time to the user's input
+date -s "$new_datetime"
+
+# Display the new system date and time
+echo "The system date and time : $(date +"%Y-%m-%d %H:%M:%S")"

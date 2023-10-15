@@ -1,1 +1,0 @@
-build elibc_uclibc examples gdbm hardened ipv6 libressl +ncurses +readline sqlite +ssl test +threads tk wininst +xml
